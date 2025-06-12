@@ -1,0 +1,10 @@
+{
+    "name": "Kitsu Create 1920x1080 Document",
+    "author": "Your Name",
+    "version": "1.0",
+    "minKritaVersion": "5.0.0",
+    "maxKritaVersion": "",
+    "description": "Creates a new 1920x1080 document for Kitsu pipeline.",
+    "enabledByDefault": true,
+    "python": true
+} 

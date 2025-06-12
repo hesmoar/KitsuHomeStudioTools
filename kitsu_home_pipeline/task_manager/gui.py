@@ -558,6 +558,10 @@ class TaskManager(QMainWindow):
             action_launch_software = menu.addMenu("Launch Software")
             action_launch_software.setIcon(QIcon(os.path.join(current_dir, "icons", "PhotoIcon.ico")))
             
+            action_launch_resolve = None
+            action_launch_krita = None
+            action_launch_nuke = None
+
             if self.software_availability.get("Resolve"):
                 action_launch_resolve = action_launch_software.addAction("Launch Resolve")
                 action_launch_resolve.setIcon(QIcon(os.path.join(current_dir, "icons", "DaVinci_Resolve_Icon.ico")))
@@ -584,23 +588,24 @@ class TaskManager(QMainWindow):
             if action == action_view_details:
                 self.view_task_details()
             elif action == action_launch_resolve:
-                from software_utils import launch_resolve
+                from kitsu_home_pipeline.task_manager.software_utils import launch_resolve
                 selected_task = self.get_selected_task()
                 if selected_task:
                     self.save_task_context(selected_task)
                     launch_resolve(self.software_availability["Resolve"], selected_task)
             elif action == action_launch_krita:
-                from software_utils import launch_krita
+                from kitsu_home_pipeline.integrations.krita import KritaIntegration
+                krita_integration = KritaIntegration()
                 selected_task = self.get_selected_task()
                 if selected_task:
                     self.save_task_context(selected_task)
-                    launch_krita(self.software_availability["Krita"])
+                    krita_integration.launch(self.software_availability["Krita"], selected_task)
             elif action == action_launch_nuke:
-                from software_utils import launch_nuke
+                from kitsu_home_pipeline.task_manager.software_utils import launch_nuke
                 selected_task = self.get_selected_task()
                 if selected_task:
                     self.save_task_context(selected_task)
-                    launch_nuke(self.software_availability["Nuke"])
+                    launch_nuke(self.software_availability["Nuke"], selected_task)
     
     def view_task_details(self):
         selected_items = self.tasks_list.currentItem()
