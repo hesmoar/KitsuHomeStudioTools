@@ -30,20 +30,7 @@ class ResolvePublisherGUI(QMainWindow):
 
                 print("Logging into Kitsu and fetching projects...")
                 kitsu_auto_login()
-                #project_id, project_name = project_context()
 
-                #TODO: Remove unnecesary code 
-
-                #self.projects_dropdown.clear()
-                #self.projects_dropdown.addItem("Select Kitsu Project")
-                #self.project_map = {}
-#
-                #for project in projects:
-                #    name = project["name"]
-                #    self.projects_dropdown.addItem(name)
-                #    self.project_map[name] = project
-                #
-                #print(f"Loaded {len(projects)} projects from Kitsu.")
                 print(f"Succesfuly loaded context project: {self.project_name}")
 
                 self.kitsu_dropdown_group.setVisible(True)
@@ -137,29 +124,6 @@ class ResolvePublisherGUI(QMainWindow):
         self.kitsu_task_label = QLabel(self.task_name)
         kitsu_dropdown_layout.addWidget(self.kitsu_project_label)
         kitsu_dropdown_layout.addWidget(self.kitsu_task_label)
-        
-        #self.projects_dropdown = QComboBox()
-        #self.projects_dropdown.addItems(["Select Kitsu Project"])
-        #self.projects_dropdown.currentIndexChanged.connect(self.on_project_selected)
-        #kitsu_dropdown_layout.addWidget(QLabel("Select Kitsu Project:"))
-        #kitsu_dropdown_layout.addWidget(self.projects_dropdown)
-
-        #self.edits_dropdown = QComboBox()
-        #self.edits_dropdown.addItems(["Select Kitsu Edit"])
-        #self.edits_dropdown.currentIndexChanged.connect(self.on_edit_selected)
-        #kitsu_dropdown_layout.addWidget(QLabel("Select Kitsu Edit:"))
-        #kitsu_dropdown_layout.addWidget(self.edits_dropdown)
-
-        #self.edit_tasks_dropdown = QComboBox()
-        #self.edit_tasks_dropdown.addItems(["Select Kitsu Edit Task"])
-        #kitsu_dropdown_layout.addWidget(QLabel("Select Kitsu Edit Task:"))
-        #kitsu_dropdown_layout.addWidget(self.edit_tasks_dropdown)
-
-        #self.shot_task_dropdown = QComboBox()
-        #self.shot_task_dropdown.addItems(["Select Shot Task"])
-        #self.shot_task_dropdown.currentIndexChanged.connect(self.on_shot_task_selected)
-        #kitsu_dropdown_layout.addWidget(QLabel("Select Shot Task:"))
-        #kitsu_dropdown_layout.addWidget(self.shot_task_dropdown)   
 
 
         self.kitsu_dropdown_group.setVisible(False)  # Initially hidden
@@ -305,10 +269,6 @@ class ResolvePublisherGUI(QMainWindow):
             
         """)
 
-    #def update_preset_dropdown(self):
-    #    presets = render_presets
-    #    self.preset_dropdown.clear()
-    #    self.preset_dropdown.addItems(presets)
 
     # Select directory functions
     def select_export_dir(self):

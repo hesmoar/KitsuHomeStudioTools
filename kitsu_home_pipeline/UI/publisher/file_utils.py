@@ -1,6 +1,6 @@
 # file_utils.py
 import os
-from timeline_utils import get_timeline_name
+from KitsuHomeStudioTools.kitsu_home_pipeline.integrations.resolve.timeline_utils import get_timeline_name
 import shutil
 import json
 import pprint
