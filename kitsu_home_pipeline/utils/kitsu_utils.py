@@ -5,7 +5,6 @@ import tempfile
 import shutil
 
 
-
 def get_user_projects():
     project_names = []
     projects ={}
