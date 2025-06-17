@@ -27,9 +27,9 @@ add_scripts_to_path(pipe_scripts)
 
 # Import your existing modules
 from gui import run_gui
-from project_utils import get_current_project, delete_existing_jobs
+from KitsuHomeStudioTools.kitsu_home_pipeline.integrations.resolve.project_utils import get_current_project, delete_existing_jobs
 from file_utils import export_otio, move_files_to_publish_directory
-from render_utils import render_jobs, get_render_presets, get_render_status, final_full_cut_path, renders_to_publish
+from KitsuHomeStudioTools.kitsu_home_pipeline.integrations.resolve.render_utils import render_jobs, get_render_presets, get_render_status, final_full_cut_path, renders_to_publish
 from kitsu_auth import kitsu_auto_login
 from kitsu_editorial_publisher import read_otio, update_kitsu, files_to_publish, publish_edit_preview
 from kitsu_project_context import project_context

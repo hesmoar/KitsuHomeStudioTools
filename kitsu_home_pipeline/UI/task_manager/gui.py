@@ -1,8 +1,10 @@
-import sys
 import os
+import sys
 import webbrowser
 import subprocess
-
+import json
+import logging
+from datetime import datetime
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton,
     QCheckBox, QRadioButton, QButtonGroup, QFileDialog, QHBoxLayout, QGroupBox, 
@@ -11,8 +13,8 @@ from PySide6.QtWidgets import (
     QMessageBox, QListWidget, QListWidgetItem, QMenu, QToolButton, QSizeGrip
 )
 from PySide6.QtGui import QIcon, QPixmap, QFont, QColor, QPalette
-from PySide6.QtCore import Qt, QSize
-from kitsu_home_pipeline.kitsu_utils import (
+from PySide6.QtCore import Qt, QSize, QThread, Signal
+from kitsu_home_pipeline.utils import (
     get_user_projects,
     get_user_tasks_for_project,
     get_preview_thumbnail,
@@ -21,15 +23,38 @@ from kitsu_home_pipeline.kitsu_utils import (
     get_project_short_name,
     get_task_short_name
 )
-from kitsu_home_pipeline.kitsu_utils.auth import connect_to_kitsu, load_credentials, clear_credentials
+from kitsu_home_pipeline.utils.auth import connect_to_kitsu, load_credentials, clear_credentials
 #from kitsu_auth import connect_to_kitsu, load_credentials, clear_credentials
 from kitsu_home_pipeline.task_manager.software_utils import clean_up_temp_files
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
+# Configure logging
+def setup_logging():
+    # Create logs directory if it doesn't exist
+    logs_dir = os.path.join(os.path.expanduser("~"), ".kitsu", "logs")
+    os.makedirs(logs_dir, exist_ok=True)
+    
+    # Create log file with timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = os.path.join(logs_dir, f"task_manager_{timestamp}.log")
+    
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler()  # This will also show logs in console
+        ]
+    )
+    
+    return logging.getLogger(__name__)
+
+# Initialize logger
+logger = setup_logging()
+
 class TaskManager(QMainWindow):
-
-
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Kitsu Task Manager")
@@ -37,6 +62,10 @@ class TaskManager(QMainWindow):
         icon_path = os.path.join(current_dir, "icons", "KitsuTaskManagerIcon.ico")
         self.setWindowIcon(QIcon(icon_path))
         self.setGeometry(50, 50, 400, 300)
+
+        # Initialize software detection
+        self.software_availability = {}
+        self.detect_installed_software()
 
         stored_credentials = load_credentials()
         if stored_credentials:
@@ -46,7 +75,6 @@ class TaskManager(QMainWindow):
                 return
             
         self.show_login_screen()
-
 
     def apply_stylesheet(self):
          self.setStyleSheet("""             
@@ -186,13 +214,14 @@ class TaskManager(QMainWindow):
 
     def auto_login(self):
         try:
-            #print(f"Loaded credentials: {stored_credentials}")
             connect_to_kitsu(
                 self.selections["kitsu_url"],
                 self.selections["username"],
                 self.selections["password"]
             )
             self.update_ui_with_kitsu()
+            # Set up DCC integrations after successful login
+            self.setup_dcc_integrations()
             return True
         except Exception as e:
             QMessageBox.warning(self, "Auto-Login Failed", f"Auto-login failed: {str(e)}")
@@ -208,7 +237,6 @@ class TaskManager(QMainWindow):
     
     def start_process(self):
         self.get_selections()
-        print("Starting process with selections:")
 
         try:
             connect_to_kitsu(
@@ -218,15 +246,28 @@ class TaskManager(QMainWindow):
             )
 
             self.update_ui_with_kitsu()
+            # Set up DCC integrations after successful login
+            self.setup_dcc_integrations()
         except Exception as e:
             QMessageBox.warning(self, "Login Failed", f"Login failed: {str(e)}")
 
     def detect_installed_software(self):
-        self.software_availability = {
-            "Resolve": self.is_software_installed("Resolve.exe"),
-            "Krita": self.is_software_installed("krita.exe"),
-            "Nuke": self.is_software_installed("Nuke.exe"),
-        }
+        """Detect installed DCC software."""
+        try:
+            # Only detect if not already done
+            if not self.software_availability:
+                self.software_availability = {
+                    "Resolve": self.is_software_installed("Resolve.exe"),
+                    "Krita": self.is_software_installed("krita.exe"),
+                    "Nuke": self.is_software_installed("Nuke.exe"),
+                }
+                logger.info(f"Detected software: {self.software_availability}")
+            
+            return self.software_availability
+            
+        except Exception as e:
+            logger.error(f"Error detecting software: {str(e)}")
+            return {}
 
     def is_software_installed(self, executable_name):
         for path in os.environ["PATH"].split(os.pathsep):
@@ -320,9 +361,10 @@ class TaskManager(QMainWindow):
         header_right_column.addWidget(self.username_button)
 
         header_level.addLayout(header_left_column)
-        header_level.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Expanding))
+        header_level.addStretch()
+        #header_level.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Expanding))
         header_level.addLayout(header_right_column)
-        header_level.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Expanding))
+        #header_level.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Expanding))
 
         # First level 
         first_level = QHBoxLayout()
@@ -613,10 +655,82 @@ class TaskManager(QMainWindow):
             selected_task = selected_items[0].text()
             QMessageBox.information(self, "Task Details", f"Details for task: {selected_task}")
     
+    def setup_dcc_integrations(self):
+        """Setup DCC software integrations."""
+        try:
+            # Use already detected software instead of detecting again
+            logger.info(f"Using detected software: {self.software_availability}")
 
+            # Setup Resolve integration if available
+            if self.software_availability.get("Resolve"):
+                logger.info("Setting up Resolve integration")
+                from kitsu_home_pipeline.integrations.resolve.setup_utils import setup_resolve_integration, ResolveSetup
+                
+                # Get the source scripts directory
+                source_scripts_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "integrations", "resolve", "scripts")
+                
+                # Setup environment variables
+                setup = ResolveSetup()
+                setup.setup_environment_variables()
+                
+                # Verify the environment
+                verification = setup.verify_environment()
+                
+                if verification["success"]:
+                    logger.info("Resolve integration has been set up successfully!")
+                    logger.info("Environment variables have been configured.")
+                else:
+                    # Create setup instructions
+                    setup._create_setup_instructions()
+                    
+                    # Show verification results only if there are issues
+                    missing_vars = "\n".join(f"- {var}" for var in verification["missing_vars"])
+                    msg = QMessageBox()
+                    msg.setIcon(QMessageBox.Warning)
+                    msg.setWindowTitle("Setup Verification")
+                    msg.setText("Some environment variables could not be set automatically.")
+                    msg.setInformativeText(f"Missing or invalid variables:\n{missing_vars}\n\n"
+                                         f"Please check the setup instructions at:\n{verification['instructions_file']}")
+                    msg.setStandardButtons(QMessageBox.Ok)
+                    msg.exec_()
 
+        except Exception as e:
+            logger.error(f"Error setting up DCC integrations: {str(e)}")
+            QMessageBox.critical(self, "Setup Error", 
+                f"Error setting up DCC integrations: {str(e)}\n\n"
+                "Please check the logs for more details.")
 
+def setup_dcc_integration(software_name):
+    """
+    Set up integration for a specific DCC software.
+    
+    Args:
+        software_name (str): Name of the DCC software (e.g., 'resolve', 'krita')
+    """
+    try:
+        if software_name.lower() == 'resolve':
+            from kitsu_home_pipeline.integrations.resolve.setup_utils import setup_resolve_integration
+            source_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'integrations', 'resolve')
+            if setup_resolve_integration(source_dir):
+                logger.info("Successfully set up Resolve integration")
+            else:
+                logger.error("Failed to set up Resolve integration")
+        # Add other DCC software integrations here
+        # elif software_name.lower() == 'krita':
+        #     ...
+    except Exception as e:
+        logger.error(f"Error setting up {software_name} integration: {e}")
 
+def on_login_success():
+    """
+    Handle post-login tasks, including DCC software integration setup.
+    """
+    # Detect installed DCC software
+    installed_software = detect_installed_software()  # You'll need to implement this
+    
+    # Set up integration for each detected software
+    for software in installed_software:
+        setup_dcc_integration(software)
 
 def run_gui():
     app = QApplication(sys.argv)

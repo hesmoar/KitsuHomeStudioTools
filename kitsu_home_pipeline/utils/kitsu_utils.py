@@ -13,10 +13,10 @@ def get_user_projects():
     #pprint.pprint(user_active_projects)
     for project in user_active_projects:
         print(f"Project Name: {project["name"]}")
-        print(f"Project ID: {project["id"]}")
+        #print(f"Project ID: {project["id"]}")
         project_names.append(project["name"])
         projects[project["name"]] = project["id"]
-    pprint.pprint(projects)
+    #pprint.pprint(projects)
     return project_names
 
 def get_project_short_name(project):

@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt
-from render_utils import get_render_presets
+from KitsuHomeStudioTools.kitsu_home_pipeline.integrations.resolve.render_utils import get_render_presets
 from kitsu_project_context import project_context, task_context, get_project
 
 
@@ -25,7 +25,7 @@ class ResolvePublisherGUI(QMainWindow):
         if state == 2: # If checked
             try:
                 import gazu
-                from kitsu_home_pipeline.kitsu_utils.auth import kitsu_auto_login
+                from kitsu_home_pipeline.utils.auth import kitsu_auto_login
 
 
                 print("Logging into Kitsu and fetching projects...")

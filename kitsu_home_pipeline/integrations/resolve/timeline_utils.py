@@ -1,7 +1,7 @@
 # timeline_utils.py
 import os
 import pprint
-from project_utils import get_current_project
+from KitsuHomeStudioTools.kitsu_home_pipeline.integrations.resolve.project_utils import get_current_project
 import pprint
 
 resolve_timeline_name = None
