@@ -1,4 +1,3 @@
-import kitsu_auth
 import gazu
 import tkinter as tk
 from tkinter import simpledialog, messagebox
@@ -6,10 +5,11 @@ import os
 import json
 import tempfile
 import pprint
-from kitsu_auth import kitsu_auto_login
+from kitsu_home_pipeline.utils.auth import kitsu_auto_login
+from kitsu_home_pipeline.utils.context_from_json import get_context_from_json, context_file_path
 
-file_path = r"C:\Temp\KitsuTaskManager\Context\Kitsu_task_context.json"
-
+file_path = context_file_path
+"""
 def get_context_from_json(json_file_path):
     try:
         with open(json_file_path, 'r') as file:
@@ -20,7 +20,7 @@ def get_context_from_json(json_file_path):
         print(f"Error reading JSON file: {e}")
         return None
     
-
+"""
 
 def project_context():
     project = get_context_from_json(file_path)

@@ -635,6 +635,7 @@ class TaskManager(QMainWindow):
                 if selected_task:
                     self.save_task_context(selected_task)
                     launch_resolve(self.software_availability["Resolve"], selected_task)
+
             elif action == action_launch_krita:
                 from kitsu_home_pipeline.integrations.krita import KritaIntegration
                 krita_integration = KritaIntegration()
@@ -642,6 +643,7 @@ class TaskManager(QMainWindow):
                 if selected_task:
                     self.save_task_context(selected_task)
                     krita_integration.launch(self.software_availability["Krita"], selected_task)
+                    
             elif action == action_launch_nuke:
                 from kitsu_home_pipeline.task_manager.software_utils import launch_nuke
                 selected_task = self.get_selected_task()
@@ -668,31 +670,40 @@ class TaskManager(QMainWindow):
                 
                 # Get the source scripts directory
                 source_scripts_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "integrations", "resolve", "scripts")
+                logger.info(f"Source scripts directory: {source_scripts_dir}")
                 
-                # Setup environment variables
+                # Setup integration (this will also set up environment variables)
                 setup = ResolveSetup()
-                setup.setup_environment_variables()
+                success = setup.setup_integration(source_scripts_dir)
                 
-                # Verify the environment
-                verification = setup.verify_environment()
-                
-                if verification["success"]:
-                    logger.info("Resolve integration has been set up successfully!")
-                    logger.info("Environment variables have been configured.")
-                else:
-                    # Create setup instructions
-                    setup._create_setup_instructions()
+                if success:
+                    # Verify the environment
+                    verification = setup.verify_environment()
                     
-                    # Show verification results only if there are issues
-                    missing_vars = "\n".join(f"- {var}" for var in verification["missing_vars"])
-                    msg = QMessageBox()
-                    msg.setIcon(QMessageBox.Warning)
-                    msg.setWindowTitle("Setup Verification")
-                    msg.setText("Some environment variables could not be set automatically.")
-                    msg.setInformativeText(f"Missing or invalid variables:\n{missing_vars}\n\n"
-                                         f"Please check the setup instructions at:\n{verification['instructions_file']}")
-                    msg.setStandardButtons(QMessageBox.Ok)
-                    msg.exec_()
+                    if verification["success"]:
+                        logger.info("Resolve integration has been set up successfully!")
+                        logger.info("Environment variables have been configured.")
+                        QMessageBox.information(self, "Setup Complete", 
+                            "Resolve integration has been set up successfully!\n"
+                            "The Kitsu publisher script has been installed in the Resolve Fusion Scripts directory.")
+                    else:
+                        # Create setup instructions
+                        setup._create_setup_instructions()
+                        
+                        # Show verification results only if there are issues
+                        missing_vars = "\n".join(f"- {var}" for var in verification["missing_vars"])
+                        msg = QMessageBox()
+                        msg.setIcon(QMessageBox.Warning)
+                        msg.setWindowTitle("Setup Verification")
+                        msg.setText("Some environment variables could not be set automatically.")
+                        msg.setInformativeText(f"Missing or invalid variables:\n{missing_vars}\n\n"
+                                             f"Please check the setup instructions at:\n{verification['instructions_file']}")
+                        msg.setStandardButtons(QMessageBox.Ok)
+                        msg.exec_()
+                else:
+                    QMessageBox.critical(self, "Setup Error", 
+                        "Failed to set up Resolve integration.\n"
+                        "Please check the logs for more details.")
 
         except Exception as e:
             logger.error(f"Error setting up DCC integrations: {str(e)}")

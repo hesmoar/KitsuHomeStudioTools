@@ -86,7 +86,7 @@ class ResolveSetup:
     def _get_scripts_path(self):
         """Get the Resolve scripts path based on operating system."""
         if self.system == "Windows":
-            return os.path.join(os.environ.get("APPDATA", ""), 
+            return os.path.join(os.environ.get("PROGRAMDATA", ""), 
                               "Blackmagic Design", 
                               "DaVinci Resolve", 
                               "Support", 
@@ -234,20 +234,75 @@ To set up DaVinci Resolve environment variables:
             logger.error("Failed to set up environment variables")
             return False
 
-        # Create scripts directory if it doesn't exist
-        os.makedirs(self.scripts_path, exist_ok=True)
-
         try:
+            logger.info(f"Setting up integration with source directory: {source_scripts_dir}")
+            logger.info(f"Target scripts path: {self.scripts_path}")
+
+            # Create scripts directory if it doesn't exist
+            os.makedirs(self.scripts_path, exist_ok=True)
+            logger.info(f"Created/verified scripts directory: {self.scripts_path}")
+            
+            # Create KitsuTools directory if it doesn't exist
+            kitsuTools_path = os.path.join(self.scripts_path, "KitsuTools")
+            os.makedirs(kitsuTools_path, exist_ok=True)
+            logger.info(f"Created/verified KitsuTools directory: {kitsuTools_path}")
+
+            # Create symlink for the publisher script
+            publisher_source = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 
+                                          "UI", "publisher", "main.py")
+            publisher_target = os.path.join(kitsuTools_path, "kitsu_publisher.py")
+            
+            logger.info(f"Publisher source path: {publisher_source}")
+            logger.info(f"Publisher target path: {publisher_target}")
+
+            # Verify source file exists
+            if not os.path.exists(publisher_source):
+                logger.error(f"Publisher source file does not exist: {publisher_source}")
+                return False
+
+            # Remove existing file/link if it exists
+            if os.path.exists(publisher_target):
+                logger.info(f"Removing existing file/link at: {publisher_target}")
+                if os.path.islink(publisher_target):
+                    os.unlink(publisher_target)
+                else:
+                    os.remove(publisher_target)
+
+            # Create symlink
+            try:
+                if self.system == "Windows":
+                    # On Windows, we need to use absolute paths for symlinks
+                    abs_source = os.path.abspath(publisher_source)
+                    logger.info(f"Creating Windows symlink from {abs_source} to {publisher_target}")
+                    os.symlink(abs_source, publisher_target)
+                else:
+                    logger.info(f"Creating symlink from {publisher_source} to {publisher_target}")
+                    os.symlink(publisher_source, publisher_target)
+                logger.info(f"Successfully created symlink for publisher script at: {publisher_target}")
+            except OSError as e:
+                logger.error(f"Failed to create symlink for publisher script: {e}")
+                # Fall back to copying if symlink fails
+                logger.info(f"Attempting to copy file instead of symlink")
+                try:
+                    shutil.copy2(publisher_source, publisher_target)
+                    logger.info(f"Successfully copied publisher script to: {publisher_target}")
+                except Exception as copy_error:
+                    logger.error(f"Failed to copy publisher script: {copy_error}")
+                    return False
+
             # Get all Python files from source directory
             source_files = [f for f in os.listdir(source_scripts_dir) 
                           if f.endswith('.py')]
+            logger.info(f"Found {len(source_files)} Python files in source directory")
 
             for file in source_files:
                 source_path = os.path.join(source_scripts_dir, file)
                 target_path = os.path.join(self.scripts_path, file)
+                logger.info(f"Processing file: {file}")
 
                 # Remove existing file/link if it exists
                 if os.path.exists(target_path):
+                    logger.info(f"Removing existing file/link at: {target_path}")
                     if os.path.islink(target_path):
                         os.unlink(target_path)
                     else:
@@ -257,13 +312,21 @@ To set up DaVinci Resolve environment variables:
                 try:
                     if self.system == "Windows":
                         # On Windows, we need to use absolute paths for symlinks
-                        os.symlink(os.path.abspath(source_path), target_path)
+                        abs_source = os.path.abspath(source_path)
+                        logger.info(f"Creating Windows symlink from {abs_source} to {target_path}")
+                        os.symlink(abs_source, target_path)
                     else:
+                        logger.info(f"Creating symlink from {source_path} to {target_path}")
                         os.symlink(source_path, target_path)
-                except OSError:
+                except OSError as e:
+                    logger.error(f"Failed to create symlink for {file}: {e}")
                     # If symlink fails, fall back to copying
-                    shutil.copy2(source_path, target_path)
-                    logger.info(f"Copied {file} to Resolve scripts directory")
+                    try:
+                        shutil.copy2(source_path, target_path)
+                        logger.info(f"Copied {file} to Resolve scripts directory")
+                    except Exception as copy_error:
+                        logger.error(f"Failed to copy {file}: {copy_error}")
+                        return False
 
             logger.info("Successfully set up Resolve integration")
             return True
