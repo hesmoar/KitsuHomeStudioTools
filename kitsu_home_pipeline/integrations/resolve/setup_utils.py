@@ -23,7 +23,7 @@ class ResolveSetup:
         """Get the required environment variables for Resolve scripting."""
         if self.system == "Windows":
             return {
-                "RESOLVE_SCRIPT_API": os.path.join(os.environ.get("PROGRAMDATA", "C:\\ProgramData"),
+                "RESOLVE_SCRIPT_API": os.path.join(os.environ.get("APPDATA", "C:\\APPDATA"),
                                                  "Blackmagic Design",
                                                  "DaVinci Resolve",
                                                  "Support",
@@ -33,7 +33,7 @@ class ResolveSetup:
                                                  "Blackmagic Design",
                                                  "DaVinci Resolve",
                                                  "fusionscript.dll"),
-                "PYTHONPATH": os.path.join(os.environ.get("PROGRAMDATA", "C:\\ProgramData"),
+                "PYTHONPATH": os.path.join(os.environ.get("APPDATA", "C:\\ProgramData"),
                                          "Blackmagic Design",
                                          "DaVinci Resolve",
                                          "Support",
@@ -86,7 +86,7 @@ class ResolveSetup:
     def _get_scripts_path(self):
         """Get the Resolve scripts path based on operating system."""
         if self.system == "Windows":
-            return os.path.join(os.environ.get("PROGRAMDATA", ""), 
+            return os.path.join(os.environ.get("APPDATA", ""), 
                               "Blackmagic Design", 
                               "DaVinci Resolve", 
                               "Support", 
