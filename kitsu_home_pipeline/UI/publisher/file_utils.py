@@ -8,37 +8,13 @@ import pprint
 from kitsu_home_pipeline.UI.publisher.kitsu_project_context import get_context_from_json
 #from render_utils import renders_to_publish, final_full_cut_path
 
-#renders_to_publish = []
+
 test_path = r"D:\HecberryStuff\PAINANI STUDIOS\1_Proyectos\Active\1_Animaorquesta\PipeTest\RenderTest\Clips\moveTest"
 new_renders_to_publish = []
-#json_file_path = r"P:\pipeline\file_tree_test.json"
+
 json_file_path = r"C:\Users\Usuario\Documents\Dev\KitsuHomeStudioTools\kitsu_home_pipeline\UI\publisher\file_tree.json"
-
 file_path = r"C:\Users\Usuario\AppData\Local\Temp\KitsuTaskManager\Context\Kitsu_task_context.json"
-
-
 task_context = get_context_from_json(file_path)
-
-context = {
-    "Example_Character": {
-        "Project_name": "MyTestProject",
-        "Project_short_name": "MTP",
-        "Entity_Type": "Assets",
-        "AssetType": "character",
-        "Entity_Name": "Example_Character_Name",
-        "TaskType": "compositing",
-        "TaskType_Short_Name": "cmp"
-    },
-    "Example_Shot": {
-        "Project_name": "MyTestProject",
-        "Project_short_name": "MTP",
-        "Entity_Type": "Shots",
-        "Sequence": "Example_Seq01",
-        "Entity_Name": "Example_Shot001",
-        "TaskType": "compositing",
-        "TaskType_Short_Name": "cmp"
-    }
-}
 
 
 
@@ -147,19 +123,24 @@ def read_file_tree_json(json_file_path):
 #read_file_tree_json(json_file_path)
 
 def map_kitsu_context_to_filetree(context):
-    return {
+    entity_type = context.get("entity_type_name", "").lower()
+
+    base = {
         "Project_short_name": context.get("project_code", ""),
         "Project_name": context.get("project_name", ""),
         "Entity_Type": context.get("entity_type_name", ""),
         "Entity_Name": context.get("entity_name", ""),
         "TaskType": context.get("task_type_name", ""),
         "TaskType_Short_Name": context.get("task_code", ""),
-        "Sequence": context.get("sequence", ""),
-        "Shot": context.get("entity_name", ""),  # or context.get("shot", "")
         "AssetType": context.get("asset_type", ""),
         "Asset": context.get("asset", ""),
         "Version": "001",      
     }
+    if entity_type == "shot":
+        base.update({
+            "Sequence": context.get("sequence", ""),
+            "Shot": context.get("entity_name", ""),  # or context.get("shot", "")
+        })
 
 
 def replace_placeholders(template, values, style=None):
@@ -225,19 +206,9 @@ def current_context_path():
 
 current_context_path()
 
-
-#filetree_context = map_kitsu_context_to_filetree(task_context)
-#full_paths = generate_paths(json_file_path, filetree_context)
-#
-#entity_type = filetree_context.get("Entity_Type", "").lower()
-#print(f"This is the entity type {entity_type}")
+#TODO: Add functionality to take the context json file from tmp location
+#TODO: Add functionality to create the directories if they do not exist
+#TODO: Store the file_tree json file in a more permanent location
 
 
-
-#if entity_type in all_paths:
-#    working_dir = full_paths[entity_type]
-#    print(f"This is the woring directory: {working_dir}")
-#else:
-#    working_dir = None
-#    print(f"Unknown entity type: {entity_type}")
 

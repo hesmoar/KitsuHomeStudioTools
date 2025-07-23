@@ -576,7 +576,7 @@ class TaskManager(QMainWindow):
         #            return task
         #QMessageBox.warning(self, "No Task Selected", "Please select a task to view details.")
         #return None
-    
+    #TODO: An asset is type ASSET, entity type name is a different thing, need to adjust to take this into consideration
     def save_task_context(self, task):
         context = {
             "project_name": self.projects_list.currentItem().text(),
