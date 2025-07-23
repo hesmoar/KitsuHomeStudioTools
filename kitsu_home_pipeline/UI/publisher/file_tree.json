@@ -1,0 +1,39 @@
+{
+    "working": {
+      "mountpoint": "/mnt/kitsuProjects/productions/<Project_short_name>/<Entity_Type>/<Entity_Name>/<TaskType_Short_Name>/working",
+      "root": "<Project_short_name>",
+      "folder_path": {
+        "shot": "<TaskType>",
+        "asset": "<TaskType>",
+        "sequence": "<TaskType>",
+        "edit": "<TaskType>",
+        "style": "lowercase"
+      },
+      "file_name": {
+        "shot": "<Project_short_name>_<Sequence>_<Shot>_<TaskType_Short_Name>_v<Version>",
+        "asset": "<Project_short_name>_<AssetType>_<Asset>_<TaskType_Short_Name>_v<Version>",
+        "sequence": "<Project_short_name>_<Sequence>_<TaskType_Short_Name>_v<Version>",
+        "edit": "<Project_short_name>_<Sequence>_<TaskType_Short_Name>_v<Version>",
+        "style": "lowercase"
+      }
+    },
+    "output": {
+      "mountpoint": "/mnt/kitsuProjects/productions/<Project_short_name>/<Entity_Type>/<Entity_Name>/<TaskType_Short_Name>/output",
+      "root": "<Project_short_name>",
+      "folder_path": {
+        "shot": "<TaskType>",
+        "asset": "<TaskType>",
+        "sequence": "<TaskType>",
+        "edit": "<TaskType>",
+        "style": "lowercase"
+      },
+      "file_name": {
+        "shot": "<Project_short_name>_<Sequence>_<Shot>_<TaskType_Short_Name>_v<Version>",
+        "asset": "<Project_short_name>_<AssetType>_<Asset>_<TaskType_Short_Name>_v<Version>",
+        "sequence": "<Project_short_name>_<Sequence>_<TaskType_Short_Name>_v<Version>",
+        "edit": "<Project_short_name>_<Sequence>_<TaskType_Short_Name>_v<Version>",
+        "style": "lowercase"
+      }
+    }
+  }
+  

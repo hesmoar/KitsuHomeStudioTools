@@ -1,3 +1,5 @@
+# THIS IS A WORK IN PROGRESS
+
 # Kitsu Home Pipeline Tools
 
 A toolkit for Kitsu pipeline integration with various DCC software.

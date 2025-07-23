@@ -221,7 +221,7 @@ class TaskManager(QMainWindow):
             )
             self.update_ui_with_kitsu()
             # Set up DCC integrations after successful login
-            self.setup_dcc_integrations()
+            #self.setup_dcc_integrations()
             return True
         except Exception as e:
             QMessageBox.warning(self, "Auto-Login Failed", f"Auto-login failed: {str(e)}")
@@ -247,7 +247,7 @@ class TaskManager(QMainWindow):
 
             self.update_ui_with_kitsu()
             # Set up DCC integrations after successful login
-            self.setup_dcc_integrations()
+            #self.setup_dcc_integrations()
         except Exception as e:
             QMessageBox.warning(self, "Login Failed", f"Login failed: {str(e)}")
 
@@ -576,7 +576,7 @@ class TaskManager(QMainWindow):
         #            return task
         #QMessageBox.warning(self, "No Task Selected", "Please select a task to view details.")
         #return None
-    
+    #TODO: An asset is type ASSET, entity type name is a different thing, need to adjust to take this into consideration
     def save_task_context(self, task):
         context = {
             "project_name": self.projects_list.currentItem().text(),
@@ -594,6 +594,8 @@ class TaskManager(QMainWindow):
     def contextMenuEvent(self, event):
         if self.tasks_list.underMouse():
             menu = QMenu(self)
+
+            action_publish = menu.addAction("Publish")
 
             action_view_details = menu.addAction("View Details")
 
@@ -741,6 +743,7 @@ def on_login_success():
     
     # Set up integration for each detected software
     for software in installed_software:
+        print(f"Setting up integration for {software}...")
         setup_dcc_integration(software)
 
 def run_gui():
