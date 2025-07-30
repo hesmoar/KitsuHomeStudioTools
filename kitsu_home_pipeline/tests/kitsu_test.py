@@ -2,6 +2,7 @@ from kitsu_home_pipeline.utils.context_from_json import get_context_from_json
 from kitsu_home_pipeline.utils.auth import kitsu_auto_login
 import gazu
 from kitsu_home_pipeline.utils.file_utils import get_temp_dir
+
 import os
 
 context_temp_dir = get_temp_dir("KitsuTaskManager/Context")

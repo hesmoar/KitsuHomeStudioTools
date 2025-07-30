@@ -3,6 +3,7 @@ import pprint
 import os
 import tempfile
 import shutil
+import json
 
 
 def get_user_projects():
@@ -18,6 +19,7 @@ def get_user_projects():
         projects[project["name"]] = project["id"]
     #pprint.pprint(projects)
     return project_names
+
 
 def get_project_short_name(project):
     project_dict = gazu.project.get_project_by_name(project)
@@ -62,6 +64,7 @@ def get_user_tasks_for_project(user_email, project_name):
 
 
     return entity_names, task_details, entity_types
+
 # FIXME: This should get the thumbnail from the task or asset and download it so it can be used in the GUI
 def get_preview_thumbnail(task_id):
     try:
@@ -102,6 +105,50 @@ def clean_up_thumbnails():
     if os.path.exists(temp_dir):
         shutil.rmtree(temp_dir)
 
+def get_project_info(project_name=None):
+    if not project_name:
+        print("No project name provided)")
+        return None
+    else:
+        project_info = gazu.project.get_project_by_name(project_name)
+        if project_info:
+            pprint.pprint(project_info)
+            return project_info
+        else:
+            print(f"Project {project_name} not found.")
+            return None
+
+# Project file tree structure --------------------------------------------------
+
+def update_file_tree(json_file, project_id):
+    #json_file_tree = r"P:\pipeline\file_tree_test.json"
+    #project_id = "eee1775d-015b-4876-92ac-27f781d3b763"
+    try:
+        with open(json_file, 'r') as file:
+            file_tree = json.load(file)
+            pprint.pprint(file_tree)
+
+        project_File_tree = gazu.files.update_project_file_tree(project_id, file_tree)
+
+        pprint.pprint(project_File_tree)
+    
+    except Exception as e:
+        print(f"Error loading the json file {e}")
+
+
+def get_file_tree(project_name):
+    project_dict = get_project_info(project_name)
+    if project_dict:
+        prj_file_tree = project_dict.get("file_tree")
+        if prj_file_tree:
+            print("This is the projects file tree: ")
+            pprint.pprint(prj_file_tree)
+        else:
+            print("This project does not have a file tree")
+    else:
+        print("Project not found")
+#update_file_tree()
+#TODO: Add functions to create working files and output files as well as preview file.
 
 
 
