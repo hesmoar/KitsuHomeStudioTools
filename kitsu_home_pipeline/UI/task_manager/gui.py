@@ -4,6 +4,7 @@ import webbrowser
 import subprocess
 import json
 import logging
+import pprint
 from datetime import datetime
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton,
@@ -454,7 +455,7 @@ class TaskManager(QMainWindow):
     def view_settings(self):
         QMessageBox.information(self, "Settings", "Opening settings...")
 
-    def add_task_to_list(self, task_type_name, due_date, status, entity_name, id, project_code, task_code, entity_type_name):
+    def add_task_to_list(self, task_type_name, due_date, status, entity_name, id, project_code, task_code, entity_type_name, project_id, task_type_for_entity):
         # Create a custom widget for the task
         task_widget = QWidget()
         task_layout = QHBoxLayout(task_widget)
@@ -510,8 +511,12 @@ class TaskManager(QMainWindow):
             "task_id": id,
             "project_code": get_project_short_name(self.projects_list.currentItem().text()),
             "task_code": get_task_short_name(id),
-            "entity_type_name": entity_type_name
-        })
+            "entity_type_name": entity_type_name,
+            "project_id": project_id,
+            "task_type_for_entity": task_type_for_entity
+        }) #TODO: Add project_id to the task data
+
+        
     
 
 
@@ -523,6 +528,8 @@ class TaskManager(QMainWindow):
             entity_type_and_name.append(f"{entities[i]} ({entities_type[i]})")
         self.entity_list.clear()
         self.tasks_list.clear()
+        #print("This is the task_details: ")
+        #pprint.pprint(self.task_details)
 
         
         self.entity_list.addItems(entity_type_and_name)
@@ -551,7 +558,9 @@ class TaskManager(QMainWindow):
             status = task["status"]
             id = task["task_id"]
             entity_type_name = task["entity_type_name"]
-            self.add_task_to_list(task_name, due_date, status, selected_entity, id, project_code, task_code, entity_type_name)
+            project_id = task["project_id"]
+            task_type_for_entity = task["task_type_for_entity"]
+            self.add_task_to_list(task_name, due_date, status, selected_entity, id, project_code, task_code, entity_type_name, project_id, task_type_for_entity)
     
     def get_selected_task(self):
         selected_item = self.tasks_list.currentItem()
@@ -587,7 +596,9 @@ class TaskManager(QMainWindow):
             "entity_name": task["entity_name"],
             "project_code": task["project_code"],
             "task_code": task["task_code"],
-            "entity_type": task["entity_type_name"]
+            "entity_type": task["entity_type_name"],
+            "project_id": task["project_id"],
+            "task_type_for_entity": task["task_type_for_entity"]
         }
         return context
     

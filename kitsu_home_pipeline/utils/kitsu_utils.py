@@ -20,6 +20,18 @@ def get_user_projects():
     #pprint.pprint(projects)
     return project_names
 
+def get_project_info(project_name=None):
+    if not project_name:
+        print("No project name provided)")
+        return None
+    else:
+        project_info = gazu.project.get_project_by_name(project_name)
+        if project_info:
+            pprint.pprint(project_info)
+            return project_info
+        else:
+            print(f"Project {project_name} not found.")
+            return None
 
 def get_project_short_name(project):
     project_dict = gazu.project.get_project_by_name(project)
@@ -42,7 +54,7 @@ def get_user_tasks_for_project(user_email, project_name):
     entity_names = []
     entity_types = []
     task_details = []
-
+# This is where we first get the info for the task context.
     for task in tasks:
         if task["project_name"] == project_name:
             print("This is a task")
@@ -59,13 +71,15 @@ def get_user_tasks_for_project(user_email, project_name):
                 "entity_type_name": task["entity_type_name"],
                 "task_id": task["id"],
                 "task_code": get_task_short_name(task["id"]),
-                "project_code": get_project_short_name(task["project_name"])
+                "project_code": get_project_short_name(task["project_name"]),
+                "project_id": task["project_id"],
+                "task_type_for_entity": task["task_type_for_entity"]
             })
 
 
     return entity_names, task_details, entity_types
 
-# FIXME: This should get the thumbnail from the task or asset and download it so it can be used in the GUI
+
 def get_preview_thumbnail(task_id):
     try:
         temp_dir = os.path.join(tempfile.gettempdir(), r"KitsuTaskManager\Thumbnails")
@@ -105,18 +119,6 @@ def clean_up_thumbnails():
     if os.path.exists(temp_dir):
         shutil.rmtree(temp_dir)
 
-def get_project_info(project_name=None):
-    if not project_name:
-        print("No project name provided)")
-        return None
-    else:
-        project_info = gazu.project.get_project_by_name(project_name)
-        if project_info:
-            pprint.pprint(project_info)
-            return project_info
-        else:
-            print(f"Project {project_name} not found.")
-            return None
 
 # Project file tree structure --------------------------------------------------
 
@@ -147,9 +149,22 @@ def get_file_tree(project_name):
             print("This project does not have a file tree")
     else:
         print("Project not found")
-#update_file_tree()
-#TODO: Add functions to create working files and output files as well as preview file.
 
+
+#TODO: Add functions to create working files and output files as well as preview file.
+def create_working_file():
+    pass
+
+def create_output_file():
+    pass
+
+def create_preview_file():
+    pass
+
+def publish_new_version():
+    """This function should call all 3 previous functions, publishing the working file,
+    output file and preview file into kitsu."""
+    pass
 
 
 """

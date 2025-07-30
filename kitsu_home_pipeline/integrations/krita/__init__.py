@@ -30,7 +30,7 @@ class KritaIntegration:
         except Exception as e:
             print(f"Error launching Krita: {str(e)}")
             return False
-    
+#TODO: Context should be saved in the same file when launching the software, currently we are creating 2 different files.
     def _save_task_context(self, task_context):
         """Save task context to a temporary file"""
         try:
