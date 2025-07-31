@@ -150,7 +150,7 @@ def map_kitsu_context_to_filetree(context):
 
 def get_user_mountpoint():
 
-    return os.environ.get("KITSU_PROJECTS_ROOT", "/mnt/kitsuProjects")
+    return os.environ.get("KITSU_PROJECTS_ROOT", "/mnt/kitsuProjects/")
 
 
 def replace_placeholders(template, values, style=None):
