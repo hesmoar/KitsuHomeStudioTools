@@ -359,7 +359,11 @@ class ProjectInfoWidget(QWidget):
         self.project_label.setStyleSheet("color: white; font-size: 14px;")
         self.entity_label = QLabel(f"{self.context.get('task_type_for_entity', 'Unknown Entity Type')}: {self.context.get('entity_name', 'Unknown Entity')}")
         self.project_label.setStyleSheet("color: white; font-size: 14px;")
-        self.task_label = QLabel(f"Task: {self.context.get('task_type_name', 'Unknown Task')}")
+        self.task_label = QLabel(f"Task: {self.context.get('task_name', 'Unknown Task')}")
+        print("This is the task label:")
+        print(self.task_label.text())
+        print("This should be the task label:")
+        print(self.context.get('task_name', 'Unknown Task'))
         self.task_label.setStyleSheet("color: white; font-size: 14px;")
         info_layout.addWidget(self.project_label)
         info_layout.addWidget(self.entity_label)
@@ -376,7 +380,7 @@ class ProjectInfoWidget(QWidget):
         """Update the context and refresh display"""
         self.context = context
         self.project_label.setText(f"Project: {self.context.get('project_name', 'Unknown Project')}")
-        self.task_label.setText(f"Task: {self.context.get('task_type_name', 'Unknown Task')}")
+        self.task_label.setText(f"Task: {self.context.get('task_name', 'Unknown Task')}")
 
 
 class CommentWidget(QWidget):
