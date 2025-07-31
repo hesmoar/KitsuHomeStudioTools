@@ -357,10 +357,14 @@ class ProjectInfoWidget(QWidget):
         
         self.project_label = QLabel(f"Project: {self.context.get('project_name', 'Unknown Project')}")
         self.project_label.setStyleSheet("color: white; font-size: 14px;")
+        self.entity_label = QLabel(f"{self.context.get('task_type_for_entity', 'Unknown Entity Type')}: {self.context.get('entity_name', 'Unknown Entity')}")
+        self.project_label.setStyleSheet("color: white; font-size: 14px;")
         self.task_label = QLabel(f"Task: {self.context.get('task_type_name', 'Unknown Task')}")
         self.task_label.setStyleSheet("color: white; font-size: 14px;")
         info_layout.addWidget(self.project_label)
+        info_layout.addWidget(self.entity_label)
         info_layout.addWidget(self.task_label)
+        
         
 
         
@@ -581,6 +585,8 @@ class AgnosticPublisher(QMainWindow):
             self.context = get_context_from_json(context_file_path)
             self.project_name = self.context.get("project_name", "Unknown Project")
             self.task_name = self.context.get("task_type_name", "Unknown Task")
+            self.entity_name = self.context.get("entity_name", "Unknown Entity")
+            self.task_type_for_entity = self.context.get("task_type_for_entity", "Unknown Entity Type")
             print(f"Project name that comes from the context json: {self.project_name}")
         except Exception as e:
             print(f"Error loading context: {e}")
@@ -672,6 +678,8 @@ class AgnosticPublisher(QMainWindow):
         self.selections = {
             "project_name": self.project_name,
             "task_name": self.task_name,
+            "entity_name": self.entity_name,
+            "task_type_for_entity": self.task_type_for_entity,
             "comment": self.comment_widget.get_comment(),
             "files": selected_files,
             "action": "publish"

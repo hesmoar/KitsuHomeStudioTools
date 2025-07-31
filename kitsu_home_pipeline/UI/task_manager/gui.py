@@ -649,9 +649,17 @@ class TaskManager(QMainWindow):
                 self.view_task_details()
 
             elif action == action_publish:
-                from kitsu_home_pipeline.UI.publisher.new_gui import run_publisher_gui
-                print("This should launch the publisher")
-                run_publisher_gui()
+                from kitsu_home_pipeline.UI.publisher.new_gui import AgnosticPublisher
+                from kitsu_home_pipeline.utils.file_utils import create_context_file
+                print("Creating context file for selected task")
+                selected_task = self.get_selected_task()
+                if selected_task:
+                    context = self.save_task_context(selected_task)
+                    create_context_file(context)
+
+                print("Launching Publisher")
+                self.publisher_window = AgnosticPublisher()
+                self.publisher_window.show()
 
             elif action == action_launch_resolve:
                 from kitsu_home_pipeline.task_manager.software_utils import launch_resolve
