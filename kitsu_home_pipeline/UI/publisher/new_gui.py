@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
  
 from PySide6.QtGui import QIcon, QPixmap, QFont, QColor, QPalette, QDragEnterEvent, QDropEvent
 from PySide6.QtCore import Qt, QThread, Signal, QSize, QMimeData
-from kitsu_project_context import project_context, task_context, get_project
+#from kitsu_project_context import project_context, task_context, get_project
 from kitsu_home_pipeline.utils.context_from_json import get_context_from_json, context_file_path
 from kitsu_home_pipeline.utils import (
     get_user_projects,
@@ -729,7 +729,7 @@ class AgnosticPublisher(QMainWindow):
         # Add profile logic here
 
 
-def run_gui():
+def run_publisher_gui():
     """Function to run the GUI and return the user selections."""
     app = QApplication(sys.argv)
     window = AgnosticPublisher()
@@ -744,7 +744,7 @@ def run_gui():
 
 
 if __name__ == "__main__":
-    selections = run_gui()
+    selections = run_publisher_gui()
     print("\nUser Selections:")
     for key, value in selections.items():
         print(f"{key}: {value}")
