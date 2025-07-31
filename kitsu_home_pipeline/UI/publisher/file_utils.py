@@ -6,6 +6,7 @@ from pathlib import Path
 import json
 import pprint
 from kitsu_home_pipeline.UI.publisher.kitsu_project_context import get_context_from_json
+from kitsu_home_pipeline.task_manager.software_utils import get_tmp_context_dir
 #from render_utils import renders_to_publish, final_full_cut_path
 
 
@@ -14,8 +15,9 @@ new_renders_to_publish = []
 
 json_file_path = r"C:\Users\Usuario\Documents\Dev\KitsuHomeStudioTools\kitsu_home_pipeline\UI\publisher\file_tree.json"
 file_path = r"C:\Users\Usuario\AppData\Local\Temp\KitsuTaskManager\Context\Kitsu_task_context.json"
-task_context = get_context_from_json(file_path)
-
+task_context = get_context_from_json(get_tmp_context_dir())
+#TODO: Add functionality to get the context from the file tree in kitsu using the function from the kitsu_utils file.
+#TODO: Pass the file through the unique file name function to get the correct file name, or come up with a better validation system. 
 
 def get_unique_filename(base_name, directory, extension=""):
     """Generate a unique filename with an incremental version number."""

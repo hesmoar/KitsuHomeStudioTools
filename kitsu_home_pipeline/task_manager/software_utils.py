@@ -36,6 +36,14 @@ def launch_krita(software_path, task_context):
 def launch_nuke(software_path):
     print("Launching Nuke...")
 
+def get_tmp_dir():
+    return os.path.join(tempfile.gettempdir(), "KitsuTaskManager")
+
+def get_tmp_context_dir():
+    context_tmp_dir = os.path.join(get_tmp_dir(), "Context")
+    context_tmp_file = os.path.join(context_tmp_dir, "Kitsu_task_context.json")
+
+    return context_tmp_file
 
 def create_context_file(task_context):
     temp_dir = os.path.join(tempfile.gettempdir(), r"KitsuTaskManager\Context")
