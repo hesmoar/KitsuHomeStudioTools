@@ -455,7 +455,7 @@ class TaskManager(QMainWindow):
     def view_settings(self):
         QMessageBox.information(self, "Settings", "Opening settings...")
 
-    def add_task_to_list(self, task_type_name, due_date, status, entity_name, id, project_code, task_code, entity_type_name, project_id, task_type_for_entity):
+    def add_task_to_list(self, task_type_name, due_date, status, entity_name, id, project_code, task_code, entity_type_name, project_id, task_type_for_entity, sequence):
         # Create a custom widget for the task
         task_widget = QWidget()
         task_layout = QHBoxLayout(task_widget)
@@ -513,8 +513,9 @@ class TaskManager(QMainWindow):
             "task_code": get_task_short_name(id),
             "entity_type_name": entity_type_name,
             "project_id": project_id,
-            "task_type_for_entity": task_type_for_entity
-        }) #TODO: Add project_id to the task data
+            "task_type_for_entity": task_type_for_entity,
+            "sequence": sequence
+        })
 
         
     
@@ -560,7 +561,8 @@ class TaskManager(QMainWindow):
             entity_type_name = task["entity_type_name"]
             project_id = task["project_id"]
             task_type_for_entity = task["task_type_for_entity"]
-            self.add_task_to_list(task_name, due_date, status, selected_entity, id, project_code, task_code, entity_type_name, project_id, task_type_for_entity)
+            sequence = task["sequence"]
+            self.add_task_to_list(task_name, due_date, status, selected_entity, id, project_code, task_code, entity_type_name, project_id, task_type_for_entity, sequence)
     
     def get_selected_task(self):
         selected_item = self.tasks_list.currentItem()
@@ -598,7 +600,8 @@ class TaskManager(QMainWindow):
             "task_code": task["task_code"],
             "entity_type": task["entity_type_name"],
             "project_id": task["project_id"],
-            "task_type_for_entity": task["task_type_for_entity"]
+            "task_type_for_entity": task["task_type_for_entity"],
+            "sequence": task["sequence"]
         }
         return context
     

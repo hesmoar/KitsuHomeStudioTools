@@ -73,7 +73,8 @@ def get_user_tasks_for_project(user_email, project_name):
                 "task_code": get_task_short_name(task["id"]),
                 "project_code": get_project_short_name(task["project_name"]),
                 "project_id": task["project_id"],
-                "task_type_for_entity": task["task_type_for_entity"]
+                "task_type_for_entity": task["task_type_for_entity"],
+                "sequence": task.get("sequence_name", "")
             })
 
 

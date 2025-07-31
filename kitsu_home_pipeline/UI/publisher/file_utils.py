@@ -148,6 +148,10 @@ def map_kitsu_context_to_filetree(context):
         })
     return base
 
+def get_user_mountpoint():
+
+    return os.environ.get("KITSU_PROJECTS_ROOT", "/mnt/kitsuProjects")
+
 
 def replace_placeholders(template, values, style=None):
     for key, value in values.items():
@@ -173,6 +177,8 @@ def generate_paths(json_file_path, context, path_types=("working", "output")):
     with open(json_file_path, 'r') as file:
         file_tree = json.load(file)
         #pprint.pprint(file_tree)
+    user_mountpoint = get_user_mountpoint()
+    context["KITSU_PROJECTS_ROOT"] = user_mountpoint
     all_paths = {}
     for path_type in path_types:
         file_tree_section = file_tree.get(path_type)
