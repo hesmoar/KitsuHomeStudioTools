@@ -2,8 +2,8 @@ import os
 import pprint
 import time
 from timeline_utils import get_timeline, get_clips_from_timeline, get_timeline_name, get_timeline_markers, get_timeline_markInOut
-from KitsuHomeStudioTools.kitsu_home_pipeline.utils.file_utils import get_unique_filename
-from KitsuHomeStudioTools.kitsu_home_pipeline.integrations.resolve.project_utils import get_current_project
+from kitsu_home_pipeline.utils.file_utils import get_unique_filename
+from kitsu_home_pipeline.integrations.resolve.project_utils import get_current_project
 
 
 full_cut_ranges = {}

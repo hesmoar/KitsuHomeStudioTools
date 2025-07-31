@@ -3,7 +3,7 @@ import keyring
 
 
 
-# FIXME: This should take the info from the GUI and set as env variables
+
 def set_env_variables(kitsu_url, kitsu_email, kitsu_password):
 
     print("Setting environment variables")
