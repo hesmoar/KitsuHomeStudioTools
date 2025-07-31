@@ -17,7 +17,6 @@ file_path = r"C:\Users\Usuario\AppData\Local\Temp\KitsuTaskManager\Context\Kitsu
 task_context = get_context_from_json(file_path)
 
 
-
 def get_unique_filename(base_name, directory, extension=""):
     """Generate a unique filename with an incremental version number."""
     if not os.path.exists(directory):
@@ -123,34 +122,49 @@ def read_file_tree_json(json_file_path):
 #read_file_tree_json(json_file_path)
 
 def map_kitsu_context_to_filetree(context):
-    entity_type = context.get("entity_type_name", "").lower()
+    entity_type = context.get("task_type_for_entity", "").lower()
 
     base = {
         "Project_short_name": context.get("project_code", ""),
         "Project_name": context.get("project_name", ""),
-        "Entity_Type": context.get("entity_type_name", ""),
         "Entity_Name": context.get("entity_name", ""),
         "TaskType": context.get("task_type_name", ""),
         "TaskType_Short_Name": context.get("task_code", ""),
+        "task_type_for_entity": context.get("task_type_for_entity", ""),
         "AssetType": context.get("asset_type", ""),
         "Asset": context.get("asset", ""),
         "Version": "001",      
     }
+
+
     if entity_type == "shot":
         base.update({
             "Sequence": context.get("sequence", ""),
             "Shot": context.get("entity_name", ""),  # or context.get("shot", "")
         })
+    elif entity_type == "asset":
+        base.update({
+            "Entity_Type": context.get("entity_type_name", "")
+        })
+    return base
 
 
 def replace_placeholders(template, values, style=None):
     for key, value in values.items():
-        template = template.replace(f"<{key}>", value)
+        if value is not None and value != "":
+            template = template.replace(f"<{key}>", str(value))
+        else:
+            template = template.replace(f"<{key}>", "")
+    
+    import re
+    template = re.sub(r'<[^>]+>', '', template) 
     
     if style == "lowercase":
         template = template.lower()
     elif style == "uppercase":
         template = template.upper()
+    
+    template = template.replace("//", "/").replace("__", "_").strip("_").strip("/")
 
     return template
 #replace_placeholders()
@@ -185,25 +199,28 @@ def generate_paths(json_file_path, context, path_types=("working", "output")):
         }
         all_paths[path_type] = full_paths
     print("These are the full paths")
-    #pprint.pprint(full_paths)
+    pprint.pprint(full_paths)
     return all_paths
 
 
 def current_context_path():
     filetree_context = map_kitsu_context_to_filetree(task_context)
     all_paths = generate_paths(json_file_path, filetree_context)
-    entity_type = filetree_context.get("Entity_Type", "").lower()
+    entity_type = filetree_context.get("task_type_for_entity", "").lower()
     print(f"This is the entity type: {entity_type}")
     if entity_type in all_paths["working"]:
-        working_dir = all_paths["working"][entity_type]
+        working_dir = all_paths["working"].get(entity_type)
         print(f"This is the working directory: {working_dir}")
     if entity_type in all_paths["output"]:
-        output_dir = all_paths["output"][entity_type]
+        output_dir = all_paths["output"].get(entity_type)
         print(f"This is the output directory: {output_dir}")
     else:
         working_dir = None
         print(f"Unknown entity type: {entity_type}")
+    
+    return working_dir, output_dir
 
+#map_kitsu_context_to_filetree(task_context)
 current_context_path()
 
 #TODO: Add functionality to take the context json file from tmp location
