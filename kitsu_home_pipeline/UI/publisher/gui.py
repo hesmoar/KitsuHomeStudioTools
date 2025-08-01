@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt
-from KitsuHomeStudioTools.kitsu_home_pipeline.integrations.resolve.render_utils import get_render_presets
+from kitsu_home_pipeline.integrations.resolve.render_utils import get_render_presets
 from kitsu_project_context import project_context, task_context, get_project
 
 
