@@ -2,10 +2,9 @@ import os
 import shutil
 import json
 import pprint
-from .file_utils import get_temp_dir
+from .file_utils import get_temp_dir, get_context_file_path
 
-context_temp_dir = get_temp_dir("KitsuTaskManager/Context")
-context_file_path = os.path.join(context_temp_dir, "Kitsu_task_context.json")
+context_file_path = get_context_file_path()
 
 def get_context_from_json(json_file_path):
     try:

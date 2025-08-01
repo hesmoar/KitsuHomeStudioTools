@@ -4,13 +4,28 @@ import json
 import shutil
 from pathlib import Path
 
-def get_temp_dir(subfolder: str = None) -> Path:
+def get_temp_dir() -> Path:
        temp_base = Path(tempfile.gettempdir())
+       subfolder = "KitsuTaskManager"
+       print(f"Temporary base directory: {temp_base}")
        if subfolder:
            temp_path = temp_base / subfolder
+           print(temp_path)
            temp_path.mkdir(parents=True, exist_ok=True)
+           print(f"Temporary directory created at: {temp_path}")
            return temp_path
-       return temp_base
+
+def get_context_file_path() -> Path:
+    """Get the path to the context file in the temporary directory."""
+    temp_dir = get_temp_dir()
+
+    context_file_path = temp_dir / "Context" / "Kitsu_task_context.json"
+    print(context_file_path)
+    if context_file_path.exists():
+        print(f"Context file exists at: {context_file_path}")
+
+    return context_file_path
+
 
 def create_context_file(task_context):
     temp_dir = os.path.join(tempfile.gettempdir(), r"KitsuTaskManager\Context")
