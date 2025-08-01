@@ -26,7 +26,8 @@ from kitsu_home_pipeline.utils import (
 )
 from kitsu_home_pipeline.utils.auth import connect_to_kitsu, load_credentials, clear_credentials
 #from kitsu_auth import connect_to_kitsu, load_credentials, clear_credentials
-from kitsu_home_pipeline.task_manager.software_utils import clean_up_temp_files
+from kitsu_home_pipeline.utils.file_utils import clean_up_temp_files
+from kitsu_home_pipeline.UI.publisher.new_gui import run_publisher_gui
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -610,6 +611,7 @@ class TaskManager(QMainWindow):
             menu = QMenu(self)
 
             action_publish = menu.addAction("Publish")
+            action_publish.setIcon(QIcon(os.path.join(current_dir, "icons", "KitsuPublisherIcon.ico")))
 
             action_view_details = menu.addAction("View Details")
 
@@ -645,6 +647,20 @@ class TaskManager(QMainWindow):
 
             if action == action_view_details:
                 self.view_task_details()
+
+            elif action == action_publish:
+                from kitsu_home_pipeline.UI.publisher.new_gui import AgnosticPublisher
+                from kitsu_home_pipeline.utils.file_utils import create_context_file
+                print("Creating context file for selected task")
+                selected_task = self.get_selected_task()
+                if selected_task:
+                    context = self.save_task_context(selected_task)
+                    create_context_file(context)
+
+                print("Launching Publisher")
+                self.publisher_window = AgnosticPublisher()
+                self.publisher_window.show()
+
             elif action == action_launch_resolve:
                 from kitsu_home_pipeline.task_manager.software_utils import launch_resolve
                 selected_task = self.get_selected_task()

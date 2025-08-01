@@ -233,7 +233,7 @@ current_context_path()
 
 #TODO: Add functionality to take the context json file from tmp location
 #TODO: Add functionality to create the directories if they do not exist
-#TODO: Store the file_tree json file in a more permanent location
+
 
 
 

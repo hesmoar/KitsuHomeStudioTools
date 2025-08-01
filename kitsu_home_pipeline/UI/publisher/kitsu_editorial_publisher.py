@@ -5,7 +5,7 @@ import opentimelineio as otio
 import re
 import os
 from kitsu_project_context import select_project, get_project
-from KitsuHomeStudioTools.kitsu_home_pipeline.integrations.resolve.render_utils import renders_to_publish #final_full_cut_path
+from kitsu_home_pipeline.integrations.resolve.render_utils import renders_to_publish #final_full_cut_path
 from file_utils import new_renders_to_publish
 #from timeline_utils import resolve_timeline_name
 

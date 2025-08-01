@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
  
 from PySide6.QtGui import QIcon, QPixmap, QFont, QColor, QPalette, QDragEnterEvent, QDropEvent
 from PySide6.QtCore import Qt, QThread, Signal, QSize, QMimeData
-from kitsu_project_context import project_context, task_context, get_project
+#from kitsu_project_context import project_context, task_context, get_project
 from kitsu_home_pipeline.utils.context_from_json import get_context_from_json, context_file_path
 from kitsu_home_pipeline.utils import (
     get_user_projects,
@@ -357,10 +357,18 @@ class ProjectInfoWidget(QWidget):
         
         self.project_label = QLabel(f"Project: {self.context.get('project_name', 'Unknown Project')}")
         self.project_label.setStyleSheet("color: white; font-size: 14px;")
-        self.task_label = QLabel(f"Task: {self.context.get('task_type_name', 'Unknown Task')}")
+        self.entity_label = QLabel(f"{self.context.get('task_type_for_entity', 'Unknown Entity Type')}: {self.context.get('entity_name', 'Unknown Entity')}")
+        self.project_label.setStyleSheet("color: white; font-size: 14px;")
+        self.task_label = QLabel(f"Task: {self.context.get('task_name', 'Unknown Task')}")
+        print("This is the task label:")
+        print(self.task_label.text())
+        print("This should be the task label:")
+        print(self.context.get('task_name', 'Unknown Task'))
         self.task_label.setStyleSheet("color: white; font-size: 14px;")
         info_layout.addWidget(self.project_label)
+        info_layout.addWidget(self.entity_label)
         info_layout.addWidget(self.task_label)
+        
         
 
         
@@ -372,7 +380,7 @@ class ProjectInfoWidget(QWidget):
         """Update the context and refresh display"""
         self.context = context
         self.project_label.setText(f"Project: {self.context.get('project_name', 'Unknown Project')}")
-        self.task_label.setText(f"Task: {self.context.get('task_type_name', 'Unknown Task')}")
+        self.task_label.setText(f"Task: {self.context.get('task_name', 'Unknown Task')}")
 
 
 class CommentWidget(QWidget):
@@ -581,6 +589,8 @@ class AgnosticPublisher(QMainWindow):
             self.context = get_context_from_json(context_file_path)
             self.project_name = self.context.get("project_name", "Unknown Project")
             self.task_name = self.context.get("task_type_name", "Unknown Task")
+            self.entity_name = self.context.get("entity_name", "Unknown Entity")
+            self.task_type_for_entity = self.context.get("task_type_for_entity", "Unknown Entity Type")
             print(f"Project name that comes from the context json: {self.project_name}")
         except Exception as e:
             print(f"Error loading context: {e}")
@@ -606,37 +616,45 @@ class AgnosticPublisher(QMainWindow):
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(15, 15, 15, 15)
         main_layout.setSpacing(10)
+
+        files_layout = QHBoxLayout()
         
         # Create modular widgets
         self.header_widget = UserHeaderWidget()
         self.project_info_widget = ProjectInfoWidget(self.context)
-        self.file_gallery = FileGalleryWidget()
+        self.working_file_gallery = FileGalleryWidget()
+        self.output_file_gallery = FileGalleryWidget()
         self.comment_widget = CommentWidget()
         self.action_buttons = ActionButtonsWidget()
+        
+        files_layout.addWidget(self.create_file_section("Working Files", self.working_file_gallery))
+        files_layout.addWidget(self.create_file_section("Output Files", self.output_file_gallery))
         
         # Add widgets to main layout
         main_layout.addWidget(self.header_widget)
         main_layout.addWidget(self.project_info_widget)
-        main_layout.addWidget(self.create_file_section())
+        main_layout.addLayout(files_layout)
+        #main_layout.addWidget(self.create_file_section("Working Files", self.working_file_gallery))
+        #main_layout.addWidget(self.create_file_section("Output Files", self.output_file_gallery))
         main_layout.addWidget(self.comment_widget)
         main_layout.addWidget(self.action_buttons)
     
-    def create_file_section(self):
+    def create_file_section(self, title, gallery):
         """Create the file selection section with gallery and buttons"""
-        file_group = QGroupBox("Files to Publish")
+        file_group = QGroupBox(title)
         file_layout = QVBoxLayout(file_group)
         
         # Add file gallery
-        file_layout.addWidget(self.file_gallery)
+        file_layout.addWidget(gallery)
         
         # Add browse and clear buttons
         file_buttons_layout = QHBoxLayout()
         
         browse_button = QPushButton("Browse Files")
-        browse_button.clicked.connect(self.browse_files)
+        browse_button.clicked.connect(lambda: self.browse_files(gallery))
         
         clear_button = QPushButton("Clear All")
-        clear_button.clicked.connect(self.clear_files)
+        clear_button.clicked.connect(gallery.clear_files)
         
         file_buttons_layout.addWidget(browse_button)
         file_buttons_layout.addWidget(clear_button)
@@ -666,14 +684,18 @@ class AgnosticPublisher(QMainWindow):
     def start_process(self):
         """Start process and set selections"""
         # Get selected files
+        working_files = self.working_file_gallery.get_files()
         selected_files = self.file_gallery.get_files()
         
         # Set selections based on current state
         self.selections = {
             "project_name": self.project_name,
             "task_name": self.task_name,
+            "entity_name": self.entity_name,
+            "task_type_for_entity": self.task_type_for_entity,
             "comment": self.comment_widget.get_comment(),
-            "files": selected_files,
+            "output_files": selected_files,
+            "working_files": working_files,
             "action": "publish"
         }
         
@@ -691,7 +713,7 @@ class AgnosticPublisher(QMainWindow):
         # Close the application properly
         QApplication.quit()
     
-    def browse_files(self):
+    def browse_files(self, gallery):
         """Browse and select files to publish"""
         files, _ = QFileDialog.getOpenFileNames(
             self,
@@ -702,11 +724,11 @@ class AgnosticPublisher(QMainWindow):
         
         if files:
             for file_path in files:
-                self.file_gallery.add_file(file_path)
+                gallery.add_file(file_path)
     
-    def clear_files(self):
+    def clear_files(self, gallery):
         """Clear all files from the gallery"""
-        self.file_gallery.clear_files()
+        gallery.clear_files()
     
     def on_comment_changed(self, comment):
         """Handle comment changes"""
@@ -729,7 +751,7 @@ class AgnosticPublisher(QMainWindow):
         # Add profile logic here
 
 
-def run_gui():
+def run_publisher_gui():
     """Function to run the GUI and return the user selections."""
     app = QApplication(sys.argv)
     window = AgnosticPublisher()
@@ -744,7 +766,7 @@ def run_gui():
 
 
 if __name__ == "__main__":
-    selections = run_gui()
+    selections = run_publisher_gui()
     print("\nUser Selections:")
     for key, value in selections.items():
         print(f"{key}: {value}")

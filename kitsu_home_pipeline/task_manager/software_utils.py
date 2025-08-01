@@ -1,11 +1,12 @@
 import subprocess
 import os
-from kitsu_home_pipeline.task_manager.resolve_utils import setup_resolve
 from PySide6.QtWidgets import QMessageBox
 import time
 import tempfile
 import shutil
 import json
+from kitsu_home_pipeline.task_manager.resolve_utils import setup_resolve
+from kitsu_home_pipeline.utils.file_utils import create_context_file
 
 def launch_resolve(software_path, task_context):
     print("Launching DaVinci Resolve...")
@@ -14,7 +15,7 @@ def launch_resolve(software_path, task_context):
         subprocess.Popen([software_path])
         create_context_file(task_context)
         
-        time.sleep(35)
+        time.sleep(10)
 
         #setup_resolve()
     except FileNotFoundError:
@@ -36,6 +37,7 @@ def launch_krita(software_path, task_context):
 def launch_nuke(software_path):
     print("Launching Nuke...")
 
+
 def get_tmp_dir():
     return os.path.join(tempfile.gettempdir(), "KitsuTaskManager")
 
@@ -44,18 +46,3 @@ def get_tmp_context_dir():
     context_tmp_file = os.path.join(context_tmp_dir, "Kitsu_task_context.json")
 
     return context_tmp_file
-
-def create_context_file(task_context):
-    temp_dir = os.path.join(tempfile.gettempdir(), r"KitsuTaskManager\Context")
-    os.makedirs(temp_dir, exist_ok=True)
-    temp_file = os.path.join(temp_dir, "Kitsu_task_context.json")
-
-    with open(temp_file, "w") as f:
-        json.dump(task_context, f, indent=4)
-    print(f"Context file created at {temp_file}")
-
-
-def clean_up_temp_files():
-    temp_dir = os.path.join(tempfile.gettempdir(), "KitsuTaskManager")
-    if os.path.exists(temp_dir):
-        shutil.rmtree(temp_dir)
