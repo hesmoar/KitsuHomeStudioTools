@@ -5,10 +5,12 @@ import shutil
 import pprint
 from pathlib import Path
 
+
+
 test_path = r"D:\HecberryStuff\PAINANI STUDIOS\1_Proyectos\Active\1_Animaorquesta\PipeTest\RenderTest\Clips\moveTest"
 new_renders_to_publish = []
 
-json_file_path = r"C:\Users\Usuario\Documents\Dev\KitsuHomeStudioTools\kitsu_home_pipeline\UI\publisher\file_tree.json"
+#json_file_path = r"C:\Users\Usuario\Documents\Dev\KitsuHomeStudioTools\kitsu_home_pipeline\UI\publisher\file_tree.json"
 file_path = r"C:\Users\Usuario\AppData\Local\Temp\KitsuTaskManager\Context\Kitsu_task_context.json"
 
 
@@ -35,8 +37,10 @@ def get_context_file_path() -> Path:
 
     return context_file_path
 
-def get_context_from_json(json_file_path):
+def get_context_from_json():
+
     try:
+        json_file_path = get_context_file_path()
         with open(json_file_path, 'r') as file:
             context_data = json.load(file)
             #pprint.pprint(context_data)
@@ -44,11 +48,6 @@ def get_context_from_json(json_file_path):
     except Exception as e:
         print(f"Error reading JSON file: {e}")
         return None
-
-
-
-task_context = get_context_from_json(get_temp_dir())
-
 
 
 def create_context_file(task_context):
@@ -87,32 +86,36 @@ def get_unique_filename(base_name, directory, extension=""):
 
 
 # Functions for file paths
-def map_kitsu_context_to_filetree(context):
-    entity_type = context.get("task_type_for_entity", "").lower()
+def map_kitsu_context_to_filetree():
+    context_dict = get_context_from_json()
+    entity_type = context_dict.get("task_type_for_entity", "").lower()
 
     base = {
-        "Project_short_name": context.get("project_code", ""),
-        "Project_name": context.get("project_name", ""),
-        "Entity_Name": context.get("entity_name", ""),
-        "TaskType": context.get("task_type_name", ""),
-        "TaskType_Short_Name": context.get("task_code", ""),
-        "task_type_for_entity": context.get("task_type_for_entity", ""),
-        "AssetType": context.get("asset_type", ""),
-        "Asset": context.get("asset", ""),
+        "Project_short_name": context_dict.get("project_code", ""),
+        "Project_name": context_dict.get("project_name", ""),
+        "Entity_Name": context_dict.get("entity_name", ""),
+        "TaskType": context_dict.get("task_type_name", ""),
+        "TaskType_Short_Name": context_dict.get("task_code", ""),
+        "task_type_for_entity": context_dict.get("task_type_for_entity", ""),
+        "AssetType": context_dict.get("asset_type", ""),
+        "Asset": context_dict.get("asset", ""),
         "Version": "001",      
     }
 
 
     if entity_type == "shot":
         base.update({
-            "Sequence": context.get("sequence", ""),
-            "Shot": context.get("entity_name", ""),  # or context.get("shot", "")
+            "Sequence": context_dict.get("sequence", ""),
+            "Shot": context_dict.get("entity_name", ""),  # or context_dict.get("shot", "")
         })
     elif entity_type == "asset":
         base.update({
-            "Entity_Type": context.get("entity_type_name", "")
+            "Entity_Type": context_dict.get("entity_type", "")
         })
+    pprint.pprint(base)
     return base
+
+
 
 def get_user_mountpoint():
 
@@ -139,13 +142,15 @@ def replace_placeholders(template, values, style=None):
     return template
 #replace_placeholders()
 
-def generate_paths(json_file_path, context, path_types=("working", "output")):
-    with open(json_file_path, 'r') as file:
-        file_tree = json.load(file)
-        #pprint.pprint(file_tree)
+def generate_paths(context, path_types=("working", "output")):
+    from kitsu_home_pipeline.utils.kitsu_utils import get_file_tree
+    project_name = context.get("Project_name")
+    print(f"This is the project: {project_name}")
+    file_tree = get_file_tree(project_name)
     user_mountpoint = get_user_mountpoint()
     context["KITSU_PROJECTS_ROOT"] = user_mountpoint
     all_paths = {}
+
     for path_type in path_types:
         file_tree_section = file_tree.get(path_type)
         if not file_tree_section:
@@ -176,8 +181,8 @@ def generate_paths(json_file_path, context, path_types=("working", "output")):
 
 
 def current_context_path():
-    filetree_context = map_kitsu_context_to_filetree(task_context)
-    all_paths = generate_paths(json_file_path, filetree_context)
+    filetree_context = map_kitsu_context_to_filetree()
+    all_paths = generate_paths(filetree_context)
     entity_type = filetree_context.get("task_type_for_entity", "").lower()
     print(f"This is the entity type: {entity_type}")
     if entity_type in all_paths["working"]:
@@ -192,7 +197,10 @@ def current_context_path():
     
     return working_dir, output_dir
 
+if __name__=="__main__":
+    generate_paths(map_kitsu_context_to_filetree())
+
 #map_kitsu_context_to_filetree(task_context)
-current_context_path()
+#current_context_path(task_context)
 
 #TODO: Something is broken here, please fix this when you come back

@@ -4,7 +4,7 @@ import os
 import tempfile
 import shutil
 import json
-from kitsu_home_pipeline.utils.file_utils import get_context_from_json 
+from kitsu_home_pipeline.utils.context_from_json import get_context_from_json 
 
 
 def get_user_projects():
@@ -159,6 +159,7 @@ def get_file_tree(project_name):
         if prj_file_tree:
             print("This is the projects file tree: ")
             pprint.pprint(prj_file_tree)
+            return prj_file_tree
         else:
             print("This project does not have a file tree")
     else:
