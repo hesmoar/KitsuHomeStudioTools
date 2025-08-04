@@ -4,6 +4,7 @@ import os
 import tempfile
 import shutil
 import json
+from kitsu_home_pipeline.utils.file_utils import get_context_from_json 
 
 
 def get_user_projects():
@@ -39,6 +40,18 @@ def get_project_short_name(project):
     project_shortname = project_dict.get("code")
 
     return project_shortname
+
+def project_context(file_path):
+    project = get_context_from_json(file_path)
+    project_name = project.get("project_name")
+    print(f"Project name that comes from the context json: {project_name}")
+    kitsu_auto_login()
+    project_dict = gazu.project.get_project_by_name(project_name)
+    if project_dict:
+        project_id = project_dict.get("id")
+        print(f"Project ID: {project_id}")
+        return project_id, project_name
+        #pprint.pprint(project_dict)
 
 def get_task_short_name(task_id):
     task_dict = gazu.task.get_task(task_id)
