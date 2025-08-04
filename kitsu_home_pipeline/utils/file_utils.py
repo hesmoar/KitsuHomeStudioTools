@@ -197,10 +197,7 @@ def current_context_path():
     
     return working_dir, output_dir
 
-if __name__=="__main__":
-    generate_paths(map_kitsu_context_to_filetree())
 
 #map_kitsu_context_to_filetree(task_context)
 #current_context_path(task_context)
 
-#TODO: Something is broken here, please fix this when you come back
