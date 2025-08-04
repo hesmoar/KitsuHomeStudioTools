@@ -311,7 +311,7 @@ class TaskManager(QMainWindow):
     def update_ui_with_kitsu(self):
 
         # Main Window
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 1200, 600)
 
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
@@ -408,14 +408,11 @@ class TaskManager(QMainWindow):
 
 
 
-        first_level.addLayout(left_column)
-        first_level.addLayout(right_column)
 
-        # Second level
-        second_level = QHBoxLayout()
 
-        # Left Column (Second level)
-        second_right_column = QVBoxLayout()
+        # Third Column
+
+        third_column = QVBoxLayout()
 
         tasks_group = QGroupBox("Tasks")
         tasks_layout = QVBoxLayout(tasks_group)
@@ -428,7 +425,36 @@ class TaskManager(QMainWindow):
         self.tasks_list.addItems(["Your tasks"])
         tasks_layout.addWidget(self.tasks_list)
 
-        second_right_column.addWidget(tasks_group)
+        third_column.addWidget(tasks_group)
+
+        first_level.addLayout(left_column)
+        first_level.addLayout(right_column)
+        first_level.addLayout(third_column)
+
+        first_level.setStretch(0, 1)
+        first_level.setStretch(1, 1)
+        first_level.setStretch(2, 3)
+
+
+        # Second level
+        second_level = QHBoxLayout()
+
+        # Left Column (Second level)
+        second_right_column = QVBoxLayout()
+
+        versions_group = QGroupBox("Versions")
+        versions_layout = QVBoxLayout(versions_group)
+
+        self.versions_label = QLabel("Versions")
+        self.versions_label.setAlignment(Qt.AlignCenter)
+        versions_layout.addWidget(self.versions_label)
+
+        self.versions_list = QListWidget(self)
+        self.versions_list.addItems(["Versions"])
+        #self.versions_list.itemClicked.connect(self.on_entity_selected)
+        versions_layout.addWidget(self.versions_list)
+
+        second_right_column.addWidget(versions_group)
 
         second_level.addLayout(second_right_column)
 

@@ -4,6 +4,7 @@ import os
 import tempfile
 import shutil
 import json
+from kitsu_home_pipeline.utils.context_from_json import get_context_from_json 
 
 
 def get_user_projects():
@@ -39,6 +40,18 @@ def get_project_short_name(project):
     project_shortname = project_dict.get("code")
 
     return project_shortname
+
+def project_context(file_path):
+    project = get_context_from_json(file_path)
+    project_name = project.get("project_name")
+    print(f"Project name that comes from the context json: {project_name}")
+    kitsu_auto_login()
+    project_dict = gazu.project.get_project_by_name(project_name)
+    if project_dict:
+        project_id = project_dict.get("id")
+        print(f"Project ID: {project_id}")
+        return project_id, project_name
+        #pprint.pprint(project_dict)
 
 def get_task_short_name(task_id):
     task_dict = gazu.task.get_task(task_id)
@@ -146,6 +159,7 @@ def get_file_tree(project_name):
         if prj_file_tree:
             print("This is the projects file tree: ")
             pprint.pprint(prj_file_tree)
+            return prj_file_tree
         else:
             print("This project does not have a file tree")
     else:
