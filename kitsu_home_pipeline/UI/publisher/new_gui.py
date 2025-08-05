@@ -588,9 +588,10 @@ class AgnosticPublisher(QMainWindow):
         try:
             self.context = get_context_from_json(context_file_path)
             self.project_name = self.context.get("project_name", "Unknown Project")
-            self.task_name = self.context.get("task_type_name", "Unknown Task")
+            self.task_name = self.context.get("task_name", "Unknown Task")
             self.entity_name = self.context.get("entity_name", "Unknown Entity")
             self.task_type_for_entity = self.context.get("task_type_for_entity", "Unknown Entity Type")
+            self.task_id = self.context.get("task_id", "Unkown task ID")
             print(f"Project name that comes from the context json: {self.project_name}")
         except Exception as e:
             print(f"Error loading context: {e}")
@@ -683,9 +684,11 @@ class AgnosticPublisher(QMainWindow):
     
     def start_process(self):
         """Start process and set selections"""
+        from kitsu_home_pipeline.utils.kitsu_utils import create_preview_file, create_working_file, create_output_file, working_file_path
+        import gazu
         # Get selected files
         working_files = self.working_file_gallery.get_files()
-        selected_files = self.file_gallery.get_files()
+        output_files = self.output_file_gallery.get_files()
         
         # Set selections based on current state
         self.selections = {
@@ -694,12 +697,50 @@ class AgnosticPublisher(QMainWindow):
             "entity_name": self.entity_name,
             "task_type_for_entity": self.task_type_for_entity,
             "comment": self.comment_widget.get_comment(),
-            "output_files": selected_files,
+            "output_files": output_files,
             "working_files": working_files,
-            "action": "publish"
+            "action": "publish",
+            "task_id": self.task_id
         }
+
+        pprint.pprint(self.selections)
+
+        #selected_project = gazu.project.get_project_by_name(self.selections["project_name"])
+        #sequence = gazu.shot.get_sequence_by_name(selected_project, "0010")
+        #single_shot = gazu.shot.get_shot_by_name(sequence, self.entity_name)
+
+        task = gazu.task.get_task(self.selections["task_id"])
+        print("ThIS IS A TASK: ")
+        pprint.pprint(task)
+
+        task_context_from_name = task
+        print("What I extracted from the task for the new working file function: ")
+        pprint.pprint(task_context_from_name)
+
+
+        person = gazu.person.get_person_by_email(keyring.get_password("kitsu", "email"))
+        description = self.selections["comment"]
+        file_path = self.selections.get("output_files")[0]
+        software = gazu.files.get_software_by_name("Resolve")
+
+        working_file_path(task_context_from_name, software)
+        #create_working_file(
+        #    task_context_from_name,
+        #    software,
+        #    description,
+        #    person,
+        #    file_path
+        #)
+
+        create_output_file()
+        #create_preview_file(
+        #    task_context_from_name,
+        #    person,
+        #    description,
+        #    file_path
+        #)
         
-        print(f"Starting process with {len(selected_files)} files...")
+        print(f"Starting process with {len(output_files + working_files)} files...")
         self.close()
     
     def cancel_and_exit(self):

@@ -1,25 +1,25 @@
 {
     "working": {
-      "mountpoint": "<KITSU_PROJECTS_ROOT>/<Project_short_name>/<task_type_for_entity>/<Sequence>/<Entity_Type>/<Entity_Name>/<TaskType_Short_Name>",
-      "root": "<Project_short_name>",
+      "mountpoint": "<KITSU_PROJECTS_ROOT>/productions/<Project.code>",
+      "root": "", 
       "folder_path": {
-        "shot": "working",
+        "shot": "<Sequence.name>/<Shot>/<TaskType.short_name>/working",
         "asset": "working",
         "sequence": "working",
         "edit": "working",
         "style": "lowercase"
       },
       "file_name": {
-        "shot": "<Project_short_name>_<Sequence>_<Shot>_<TaskType_Short_Name>_v<Version>",
-        "asset": "<Project_short_name>_<AssetType>_<Entity_Name>_<TaskType_Short_Name>_v<Version>",
-        "sequence": "<Project_short_name>_<Sequence>_<TaskType_Short_Name>_v<Version>",
-        "edit": "<Project_short_name>_<Sequence>_<TaskType_Short_Name>_v<Version>",
+        "shot": "<Project.name>_<Sequence.name>_<Shot>_<TaskType.short_name>_v<Version>",
+        "asset": "<Project.code>_<AssetType>_<TaskType.short_name>_v<Version>",
+        "sequence": "<Project.code>_<Sequence.name>_<TaskType.short_name>_v<Version>",
+        "edit": "<Project.code>_<Sequence.name>_<TaskType.short_name>_v<Version>",
         "style": "lowercase"
       }
     },
     "output": {
-      "mountpoint": "<KITSU_PROJECTS_ROOT>/productions/<Project_short_name>/<task_type_for_entity>/<Sequence>/<Entity_Type>/<Entity_Name>/<TaskType_Short_Name>",
-      "root": "<Project_short_name>",
+      "mountpoint": "<KITSU_PROJECTS_ROOT>/productions/<Project.code>/<TaskType.short_name>/<Sequence.name>/<TaskType.short_name>",
+      "root": "<Project.code>",
       "folder_path": {
         "shot": "output",
         "asset": "output",
@@ -28,10 +28,10 @@
         "style": "lowercase"
       },
       "file_name": {
-        "shot": "<Project_short_name>_<Sequence>_<Shot>_<TaskType_Short_Name>_v<Version>",
-        "asset": "<Project_short_name>_<AssetType>_<Entity_Name>_<TaskType_Short_Name>_v<Version>",
-        "sequence": "<Project_short_name>_<Sequence>_<TaskType_Short_Name>_v<Version>",
-        "edit": "<Project_short_name>_<Sequence>_<TaskType_Short_Name>_v<Version>",
+        "shot": "<Project.code>_<Sequence.name>_<Shot>_<TaskType.short_name>_v<Version>",
+        "asset": "<Project.code>_<AssetType>_<TaskType.short_name>_v<Version>",
+        "sequence": "<Project.code>_<Sequence.name>_<TaskType.short_name>_v<Version>",
+        "edit": "<Project.code>_<Sequence.name>_<TaskType.short_name>_v<Version>",
         "style": "lowercase"
       }
     }

@@ -165,16 +165,96 @@ def get_file_tree(project_name):
     else:
         print("Project not found")
 
+#TODO: Status should not use the short name, maybe also give the option for the user to change it
+def get_review_status():
+    project_statuses = gazu.task.all_task_statuses()
+    for status in project_statuses:
+        if status.get("short_name") == 'wfa':
+            pending_status = status
+
+    return pending_status
+
 
 #TODO: Add functions to create working files and output files as well as preview file.
-def create_working_file():
-    pass
+def create_working_file(task_context, software, comment, person, path):
+    print("Creating a working file! YAY")
+
+    print("These are the values for the working file: ")
+    print("this is the task")
+    pprint.pprint(task_context)
+
+    print("This is the software: ")
+    pprint.pprint(software)
+
+    print("this is the comment: ")
+    print(comment)
+    print("This is the author: ")
+    pprint.pprint(person)
+
+    print("🔍 Checking template substitutions:")
+    print("Project short name:", task_context["project"]["code"])
+    print("Task type short name:", task_context["task_type"]["short_name"])
+    print("Entity name:", task_context["entity"]["name"])
+    print("Sequence name:", task_context["sequence"]["name"])
+
+    
+    publish_working_file = gazu.files.new_working_file(
+        task=task_context,
+        name='main',
+        mode='working',
+        software=software,
+        comment=comment,
+        person=person,
+        revision=0,
+        sep='/',
+    )
+
+    print("This is the working file created: ")
+    pprint.pprint(publish_working_file)
+
+def working_file_path(task_context, software):
+
+    working_file_path = gazu.files.build_working_file_path(
+        task=task_context,
+        name="main",
+        mode="working",
+        software=software,
+        revision=1,
+        sep="/"
+    )
+    print("This is the generated path for working file: ")
+    print(working_file_path)
 
 def create_output_file():
-    pass
+    print("Creating an output file YAY YAY!")
 
-def create_preview_file():
-    pass
+def create_preview_file(task_context, person, comment, file_path):
+    print("Creating a preview file YAY YAY YAY")
+    pnd_status = get_review_status()
+
+    #print("These are the values for the preview file: ")
+    #print("this is the task")
+    #pprint.pprint(task_context)
+    #print("This is the status: ")
+    #pprint.pprint(pnd_status)
+    #print("this is the comment: ")
+    #print(comment)
+    #print("This is the author: ")
+    #pprint.pprint(person)
+    #print("This is the file: ")
+    #print(file_path)
+
+    publish_preview = gazu.task.publish_preview(
+        task=task_context,
+        task_status=pnd_status,
+        comment=comment,
+        person=person,
+        preview_file_path=file_path,
+        set_thumbnail=True
+
+    )
+    print("This is the preview published and its data: ")
+    pprint.pprint(publish_preview)
 
 def publish_new_version():
     """This function should call all 3 previous functions, publishing the working file,
@@ -196,3 +276,6 @@ For the context needed from the task manager we need the following info:
 - Shot ID
 
 """
+
+if __name__ == "__main__":
+    create_preview_file()
