@@ -4,7 +4,7 @@
       "root": "", 
       "folder_path": {
         "shot": "<Sequence.name>/<Shot>/<TaskType.short_name>/working",
-        "asset": "working",
+        "asset": "<AssetType>/TaskType.for_entity/working",
         "sequence": "working",
         "edit": "working",
         "style": "lowercase"
