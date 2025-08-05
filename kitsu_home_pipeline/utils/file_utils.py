@@ -91,11 +91,11 @@ def map_kitsu_context_to_filetree():
     entity_type = context_dict.get("task_type_for_entity", "").lower()
 
     base = {
-        "Project_short_name": context_dict.get("project_code", ""),
-        "Project_name": context_dict.get("project_name", ""),
-        "Entity_Name": context_dict.get("entity_name", ""),
+        "project.code": context_dict.get("project_code", ""),
+        "project.name": context_dict.get("project_name", ""),
+        "entity.name": context_dict.get("entity_name", ""),
         "TaskType": context_dict.get("task_type_name", ""),
-        "TaskType_Short_Name": context_dict.get("task_code", ""),
+        "task_type.short_name": context_dict.get("task_code", ""),
         "task_type_for_entity": context_dict.get("task_type_for_entity", ""),
         "AssetType": context_dict.get("asset_type", ""),
         "Asset": context_dict.get("asset", ""),

@@ -684,7 +684,7 @@ class AgnosticPublisher(QMainWindow):
     
     def start_process(self):
         """Start process and set selections"""
-        from kitsu_home_pipeline.utils.kitsu_utils import create_preview_file, create_working_file, create_output_file
+        from kitsu_home_pipeline.utils.kitsu_utils import create_preview_file, create_working_file, create_output_file, working_file_path
         import gazu
         # Get selected files
         working_files = self.working_file_gallery.get_files()
@@ -710,22 +710,35 @@ class AgnosticPublisher(QMainWindow):
         #single_shot = gazu.shot.get_shot_by_name(sequence, self.entity_name)
 
         task = gazu.task.get_task(self.selections["task_id"])
+        print("ThIS IS A TASK: ")
+        pprint.pprint(task)
 
         task_context_from_name = task
+        print("What I extracted from the task for the new working file function: ")
+        pprint.pprint(task_context_from_name)
 
 
         person = gazu.person.get_person_by_email(keyring.get_password("kitsu", "email"))
         description = self.selections["comment"]
         file_path = self.selections.get("output_files")[0]
+        software = gazu.files.get_software_by_name("Resolve")
 
-        create_working_file()
+        working_file_path(task_context_from_name, software)
+        #create_working_file(
+        #    task_context_from_name,
+        #    software,
+        #    description,
+        #    person,
+        #    file_path
+        #)
+
         create_output_file()
-        create_preview_file(
-            task_context_from_name,
-            person,
-            description,
-            file_path
-        )
+        #create_preview_file(
+        #    task_context_from_name,
+        #    person,
+        #    description,
+        #    file_path
+        #)
         
         print(f"Starting process with {len(output_files + working_files)} files...")
         self.close()
