@@ -591,6 +591,7 @@ class AgnosticPublisher(QMainWindow):
             self.task_name = self.context.get("task_name", "Unknown Task")
             self.entity_name = self.context.get("entity_name", "Unknown Entity")
             self.task_type_for_entity = self.context.get("task_type_for_entity", "Unknown Entity Type")
+            self.task_id = self.context.get("task_id", "Unkown task ID")
             print(f"Project name that comes from the context json: {self.project_name}")
         except Exception as e:
             print(f"Error loading context: {e}")
@@ -698,25 +699,24 @@ class AgnosticPublisher(QMainWindow):
             "comment": self.comment_widget.get_comment(),
             "output_files": output_files,
             "working_files": working_files,
-            "action": "publish"
+            "action": "publish",
+            "task_id": self.task_id
         }
 
         pprint.pprint(self.selections)
 
-        selected_project = gazu.project.get_project_by_name(self.project_name)
-        sequence = gazu.shot.get_sequence_by_name(selected_project, "0010")
-        single_shot = gazu.shot.get_shot_by_name(sequence, self.entity_name)
+        #selected_project = gazu.project.get_project_by_name(self.selections["project_name"])
+        #sequence = gazu.shot.get_sequence_by_name(selected_project, "0010")
+        #single_shot = gazu.shot.get_shot_by_name(sequence, self.entity_name)
 
-        shot_tasks = gazu.task.all_tasks_for_shot(single_shot)
-        for shot_task in shot_tasks:
-            if shot_task.get("task_type_name") == "Storyboard":
+        task = gazu.task.get_task(self.selections["task_id"])
 
-                task_context_from_name = shot_task
+        task_context_from_name = task
 
 
-        person = gazu.person.get_person_by_email("hector.esmoar@gmail.com")
-        description = self.selections.get("comment")
-        file_path = r"C:\Users\Usuario\Pictures\ddm.jpg"
+        person = gazu.person.get_person_by_email(keyring.get_password("kitsu", "email"))
+        description = self.selections["comment"]
+        file_path = self.selections.get("output_files")[0]
 
         create_working_file()
         create_output_file()
@@ -728,7 +728,7 @@ class AgnosticPublisher(QMainWindow):
         )
         
         print(f"Starting process with {len(output_files + working_files)} files...")
-        #self.close()
+        self.close()
     
     def cancel_and_exit(self):
         """Cancel and exit the application"""
