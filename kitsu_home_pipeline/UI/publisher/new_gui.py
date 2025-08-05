@@ -588,7 +588,7 @@ class AgnosticPublisher(QMainWindow):
         try:
             self.context = get_context_from_json(context_file_path)
             self.project_name = self.context.get("project_name", "Unknown Project")
-            self.task_name = self.context.get("task_type_name", "Unknown Task")
+            self.task_name = self.context.get("task_name", "Unknown Task")
             self.entity_name = self.context.get("entity_name", "Unknown Entity")
             self.task_type_for_entity = self.context.get("task_type_for_entity", "Unknown Entity Type")
             print(f"Project name that comes from the context json: {self.project_name}")
@@ -683,9 +683,11 @@ class AgnosticPublisher(QMainWindow):
     
     def start_process(self):
         """Start process and set selections"""
+        from kitsu_home_pipeline.utils.kitsu_utils import create_preview_file, create_working_file, create_output_file
+        import gazu
         # Get selected files
         working_files = self.working_file_gallery.get_files()
-        selected_files = self.file_gallery.get_files()
+        output_files = self.output_file_gallery.get_files()
         
         # Set selections based on current state
         self.selections = {
@@ -694,13 +696,39 @@ class AgnosticPublisher(QMainWindow):
             "entity_name": self.entity_name,
             "task_type_for_entity": self.task_type_for_entity,
             "comment": self.comment_widget.get_comment(),
-            "output_files": selected_files,
+            "output_files": output_files,
             "working_files": working_files,
             "action": "publish"
         }
+
+        pprint.pprint(self.selections)
+
+        selected_project = gazu.project.get_project_by_name(self.project_name)
+        sequence = gazu.shot.get_sequence_by_name(selected_project, "0010")
+        single_shot = gazu.shot.get_shot_by_name(sequence, self.entity_name)
+
+        shot_tasks = gazu.task.all_tasks_for_shot(single_shot)
+        for shot_task in shot_tasks:
+            if shot_task.get("task_type_name") == "Storyboard":
+
+                task_context_from_name = shot_task
+
+
+        person = gazu.person.get_person_by_email("hector.esmoar@gmail.com")
+        description = self.selections.get("comment")
+        file_path = r"C:\Users\Usuario\Pictures\ddm.jpg"
+
+        create_working_file()
+        create_output_file()
+        create_preview_file(
+            task_context_from_name,
+            person,
+            description,
+            file_path
+        )
         
-        print(f"Starting process with {len(selected_files)} files...")
-        self.close()
+        print(f"Starting process with {len(output_files + working_files)} files...")
+        #self.close()
     
     def cancel_and_exit(self):
         """Cancel and exit the application"""

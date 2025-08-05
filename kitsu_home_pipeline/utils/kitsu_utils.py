@@ -167,14 +167,45 @@ def get_file_tree(project_name):
 
 
 #TODO: Add functions to create working files and output files as well as preview file.
+def get_review_status():
+    project_statuses = gazu.task.all_task_statuses()
+    for status in project_statuses:
+        if status.get("short_name") == 'wfa':
+            pending_status = status
+
+    return pending_status
+
 def create_working_file():
-    pass
+    print("Creating a working file! YAY")
 
 def create_output_file():
-    pass
+    print("Creating an output file YAY YAY!")
 
-def create_preview_file():
-    pass
+def create_preview_file(task_context, person, comment, file_path):
+    print("Creating a preview file YAY YAY YAY")
+    pnd_status = get_review_status()
+
+    print("These are the values for the preview file: ")
+    print("this is the task")
+    pprint.pprint(task_context)
+    print("This is the status: ")
+    pprint.pprint(pnd_status)
+    print("this is the comment: ")
+    print(comment)
+    print("This is the author: ")
+    pprint.pprint(person)
+    print("This is the file: ")
+    print(file_path)
+
+    gazu.task.publish_preview(
+        task=task_context,
+        task_status=pnd_status,
+        comment=comment,
+        person=person,
+        preview_file_path=file_path
+
+    )
+
 
 def publish_new_version():
     """This function should call all 3 previous functions, publishing the working file,
@@ -196,3 +227,6 @@ For the context needed from the task manager we need the following info:
 - Shot ID
 
 """
+
+if __name__ == "__main__":
+    create_preview_file()
