@@ -21,5 +21,6 @@ def project_context():
         print(f"Project ID: {project_id}")
         return project_id, project_name
     
-project_context()
+#project_context()
         #pprint.pprint(project_dict)
+

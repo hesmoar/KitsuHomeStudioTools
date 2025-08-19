@@ -1,18 +1,18 @@
 {
     "working": {
-      "mountpoint": "<KITSU_PROJECTS_ROOT>/productions/<Project.code>",
-      "root": "", 
+      "mountpoint": "<KITSU_PROJECTS_ROOT>",
+      "root": "productions", 
       "folder_path": {
-        "shot": "<Sequence.name>/<Shot>/<TaskType.short_name>/working",
-        "asset": "<AssetType>/TaskType.for_entity/working",
-        "sequence": "working",
-        "edit": "working",
+        "shot": "<Project.name>/<Sequence.name>/<Shot>/<TaskType.short_name>/working",
+        "asset": "<Project.code>/<AssetType>/<Asset.code>/<TaskType.for_entity>/working",
+        "sequence": "<Project.code>/<Sequence.name>/<TaskType.short_name>/working",
+        "edit": "<Project.code>/working",
         "style": "lowercase"
       },
       "file_name": {
-        "shot": "<Project.name>_<Sequence.name>_<Shot>_<TaskType.short_name>_v<Version>",
-        "asset": "<Project.code>_<AssetType>_<TaskType.short_name>_v<Version>",
-        "sequence": "<Project.code>_<Sequence.name>_<TaskType.short_name>_v<Version>",
+        "shot": "<Sequence.name>_<Shot>_<TaskType.short_name>_v<Version>",
+        "asset": "<Asset>_<TaskType.short_name>_v<Version>",
+        "sequence": "<Sequence.name>_<TaskType.short_name>_v<Version>",
         "edit": "<Project.code>_<Sequence.name>_<TaskType.short_name>_v<Version>",
         "style": "lowercase"
       }

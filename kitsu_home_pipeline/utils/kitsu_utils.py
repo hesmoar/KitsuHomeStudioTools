@@ -11,10 +11,10 @@ def get_user_projects():
     project_names = []
     projects ={}
     user_active_projects = gazu.user.all_open_projects()
-    print("User active projects: ")
+    #print("User active projects: ")
     #pprint.pprint(user_active_projects)
     for project in user_active_projects:
-        print(f"Project Name: {project["name"]}")
+        #print(f"Project Name: {project["name"]}")
         #print(f"Project ID: {project["id"]}")
         project_names.append(project["name"])
         projects[project["name"]] = project["id"]
@@ -70,8 +70,8 @@ def get_user_tasks_for_project(user_email, project_name):
 # This is where we first get the info for the task context.
     for task in tasks:
         if task["project_name"] == project_name:
-            print("This is a task")
-            pprint.pprint(task)
+            #print("This is a task")
+            #pprint.pprint(task)
             if task["entity_name"] not in entity_names:
                 entity_names.append(task["entity_name"])
                 entity_types.append(task["entity_type_name"])
@@ -177,7 +177,7 @@ def get_review_status():
 
 #TODO: Add functions to create working files and output files as well as preview file.
 def create_working_file(task_context, software, comment, person, path):
-    print("Creating a working file! YAY")
+    """print("Creating a working file! YAY")
 
     print("These are the values for the working file: ")
     print("this is the task")
@@ -196,7 +196,7 @@ def create_working_file(task_context, software, comment, person, path):
     print("Task type short name:", task_context["task_type"]["short_name"])
     print("Entity name:", task_context["entity"]["name"])
     print("Sequence name:", task_context["sequence"]["name"])
-
+"""
     
     publish_working_file = gazu.files.new_working_file(
         task=task_context,
@@ -224,6 +224,19 @@ def working_file_path(task_context, software):
     )
     print("This is the generated path for working file: ")
     print(working_file_path)
+
+#def output_file_path(entity):
+#    output_file_path = gazu.files.build_entity_output_file_path(
+#        entity,
+#        output_type=,
+#        task_type=,
+#        name="main",
+#        mode="output",
+#        representation="",
+#        revision=0,
+#        nb_elements=1,
+#        sep="/"
+#    )
 
 def create_output_file():
     print("Creating an output file YAY YAY!")

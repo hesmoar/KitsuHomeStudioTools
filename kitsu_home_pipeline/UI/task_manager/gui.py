@@ -24,8 +24,7 @@ from kitsu_home_pipeline.utils import (
     get_project_short_name,
     get_task_short_name
 )
-from kitsu_home_pipeline.utils.auth import connect_to_kitsu, load_credentials, clear_credentials
-#from kitsu_auth import connect_to_kitsu, load_credentials, clear_credentials
+from kitsu_home_pipeline.utils.auth import connect_to_kitsu, kitsu_auto_login, load_credentials, clear_credentials
 from kitsu_home_pipeline.utils.file_utils import clean_up_temp_files
 from kitsu_home_pipeline.UI.publisher.new_gui import run_publisher_gui
 
@@ -72,7 +71,6 @@ class TaskManager(QMainWindow):
         stored_credentials = load_credentials()
         if stored_credentials:
             self.selections = stored_credentials
-            self.auto_login()
             if self.auto_login():
                 return
             
@@ -216,11 +214,13 @@ class TaskManager(QMainWindow):
 
     def auto_login(self):
         try:
-            connect_to_kitsu(
-                self.selections["kitsu_url"],
-                self.selections["username"],
-                self.selections["password"]
-            )
+            #connect_to_kitsu(
+            #    self.selections["kitsu_url"],
+            #    self.selections["username"],
+            #    self.selections["password"]
+            #)
+            kitsu_auto_login()
+            
             self.update_ui_with_kitsu()
             # Set up DCC integrations after successful login
             #self.setup_dcc_integrations()
@@ -262,6 +262,8 @@ class TaskManager(QMainWindow):
                     "Resolve": self.is_software_installed("Resolve.exe"),
                     "Krita": self.is_software_installed("krita.exe"),
                     "Nuke": self.is_software_installed("Nuke.exe"),
+                    "Storyboarder": self.is_software_installed("Storyboarder.exe"),
+                    "Blender": self.is_software_installed("blender.exe"),
                 }
                 logger.info(f"Detected software: {self.software_availability}")
             
@@ -647,15 +649,25 @@ class TaskManager(QMainWindow):
             action_launch_resolve = None
             action_launch_krita = None
             action_launch_nuke = None
+            action_launch_storyboarder = None
+            action_launch_blender = None
+
+            if self.software_availability.get("Storyboarder"):
+                action_launch_storyboarder = action_launch_software.addAction("Launch Storyboarder")
+                action_launch_storyboarder.setIcon(QIcon(os.path.join(current_dir, "icons", "StoryborderLogo.ico")))
+
+            if self.software_availability.get("Krita"):
+                action_launch_krita = action_launch_software.addAction("Launch Krita")
+                action_launch_krita.setIcon(QIcon(os.path.join(current_dir, "icons", "kritaicon.ico")))
 
             if self.software_availability.get("Resolve"):
                 action_launch_resolve = action_launch_software.addAction("Launch Resolve")
                 action_launch_resolve.setIcon(QIcon(os.path.join(current_dir, "icons", "DaVinci_Resolve_Icon.ico")))
             
-            if self.software_availability.get("Krita"):
-                action_launch_krita = action_launch_software.addAction("Launch Krita")
-                action_launch_krita.setIcon(QIcon(os.path.join(current_dir, "icons", "kritaicon.ico")))
-            
+            if self.software_availability.get("Blender"):
+                action_launch_blender = action_launch_software.addAction("Launch Blender")
+                action_launch_blender.setIcon(QIcon(os.path.join(current_dir, "icons", "Blender_Logo.ico")))
+
             if self.software_availability.get("Nuke"):
                 action_launch_nuke = action_launch_software.addAction("Launch Nuke")
                 action_launch_nuke.setIcon(QIcon(os.path.join(current_dir, "icons", "NukeIcon.ico")))
@@ -701,6 +713,13 @@ class TaskManager(QMainWindow):
                 if selected_task:
                     self.save_task_context(selected_task)
                     krita_integration.launch(self.software_availability["Krita"], selected_task)
+            
+            elif action == action_launch_storyboarder:
+                from kitsu_home_pipeline.task_manager.software_utils import launch_storyboarder
+                selected_task = self.get_selected_task()
+                if selected_task:
+                    self.save_task_context(selected_task)
+                    launch_storyboarder(self.software_availability["Storyboarder"], selected_task)
                     
             elif action == action_launch_nuke:
                 from kitsu_home_pipeline.task_manager.software_utils import launch_nuke
@@ -708,6 +727,12 @@ class TaskManager(QMainWindow):
                 if selected_task:
                     self.save_task_context(selected_task)
                     launch_nuke(self.software_availability["Nuke"], selected_task)
+            elif action == action_launch_blender:
+                from kitsu_home_pipeline.task_manager.software_utils import launch_blender
+                selected_task = self.get_selected_task()
+                if selected_task:
+                    self.save_task_context(selected_task)
+                    launch_blender(self.software_availability["Blender"], selected_task)
     
     def view_task_details(self):
         selected_items = self.tasks_list.currentItem()
@@ -790,12 +815,12 @@ def setup_dcc_integration(software_name):
     except Exception as e:
         logger.error(f"Error setting up {software_name} integration: {e}")
 
-def on_login_success():
+def on_login_success(self):
     """
     Handle post-login tasks, including DCC software integration setup.
     """
     # Detect installed DCC software
-    installed_software = detect_installed_software()  # You'll need to implement this
+    installed_software = self.detect_installed_software()  # You'll need to implement this
     
     # Set up integration for each detected software
     for software in installed_software:
@@ -803,6 +828,8 @@ def on_login_success():
         setup_dcc_integration(software)
 
 def run_gui():
+    print("Welcome to the most amazing task manager ever!")
+    print("............")
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon(os.path.join(current_dir, "icons", "KitsuIcon.ico")))
     app.setFont(QFont("Segoe UI", 10))
