@@ -223,7 +223,7 @@ class TaskManager(QMainWindow):
             
             self.update_ui_with_kitsu()
             # Set up DCC integrations after successful login
-            #self.setup_dcc_integrations()
+            self.setup_dcc_integrations()
             return True
         except Exception as e:
             QMessageBox.warning(self, "Auto-Login Failed", f"Auto-login failed: {str(e)}")
@@ -249,7 +249,7 @@ class TaskManager(QMainWindow):
 
             self.update_ui_with_kitsu()
             # Set up DCC integrations after successful login
-            #self.setup_dcc_integrations()
+            self.setup_dcc_integrations()
         except Exception as e:
             QMessageBox.warning(self, "Login Failed", f"Login failed: {str(e)}")
 
@@ -602,7 +602,8 @@ class TaskManager(QMainWindow):
         
         task_data = selected_item.data(Qt.UserRole)
         if task_data:
-            print(f"Task data: {task_data}")
+            print("Task data: ")
+            pprint.pprint(task_data)
             return task_data
         
         QMessageBox.warning(self, " Task Not Found", "The selected task could not be found.")

@@ -9,7 +9,7 @@ render_presets = []
 # Context sould define file structure, what gets published
 # First thing should be to set the conditional for how it currently works to be when opening an edit 
 
-def add_scripts_to_path(base_path, subfolder=r"Editorial_Publisher\davinci_publisher_modular"):
+def add_scripts_to_path(base_path, subfolder=r"UI\publisher"):
     """Add the scripts path to sys.path if not already included."""
     full_path = os.path.join(base_path, subfolder)
 
