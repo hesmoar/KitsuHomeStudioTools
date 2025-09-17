@@ -223,7 +223,7 @@ class TaskManager(QMainWindow):
             
             self.update_ui_with_kitsu()
             # Set up DCC integrations after successful login
-            self.setup_dcc_integrations()
+            #self.setup_dcc_integrations()
             return True
         except Exception as e:
             QMessageBox.warning(self, "Auto-Login Failed", f"Auto-login failed: {str(e)}")
@@ -249,7 +249,7 @@ class TaskManager(QMainWindow):
 
             self.update_ui_with_kitsu()
             # Set up DCC integrations after successful login
-            self.setup_dcc_integrations()
+            #self.setup_dcc_integrations()
         except Exception as e:
             QMessageBox.warning(self, "Login Failed", f"Login failed: {str(e)}")
 
