@@ -25,7 +25,7 @@ from kitsu_home_pipeline.utils import (
     get_task_short_name
 )
 from kitsu_home_pipeline.utils.auth import connect_to_kitsu, kitsu_auto_login, load_credentials, clear_credentials
-from kitsu_home_pipeline.utils.file_utils import clean_up_temp_files
+from kitsu_home_pipeline.utils.file_utils import clean_up_temp_files, create_main_directory
 from kitsu_home_pipeline.UI.publisher.new_gui import run_publisher_gui
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -66,7 +66,8 @@ class TaskManager(QMainWindow):
 
         # Initialize software detection
         self.software_availability = {}
-        self.detect_installed_software()
+        #self.detect_installed_software()
+        self.initial_directory_setup(drive_letter='k', root_folder='KitsuProjects')
 
         stored_credentials = load_credentials()
         if stored_credentials:
@@ -468,7 +469,7 @@ class TaskManager(QMainWindow):
         main_layout.addLayout(second_level)
         
         self.apply_stylesheet()
-        self.detect_installed_software()
+        #self.detect_installed_software()
 
     def view_profile(self):
         try:
@@ -794,6 +795,21 @@ class TaskManager(QMainWindow):
             QMessageBox.critical(self, "Setup Error", 
                 f"Error setting up DCC integrations: {str(e)}\n\n"
                 "Please check the logs for more details.")
+            
+    def network_drive_detected(self, drive_letter):
+        drive_path = f"{drive_letter.upper()}:\\"
+        print(f"Checking for drive: {drive_path}")
+        if os.path.exists(drive_path):
+            print(f"Network drive {drive_letter} detected")
+            return drive_path
+        else:
+            print(f"Network drive {drive_letter} not detected.")
+
+    def initial_directory_setup(self, drive_letter, root_folder):
+        network_drive = self.network_drive_detected(drive_letter)
+        if network_drive:
+            create_main_directory(network_drive, root_folder)
+
 
 def setup_dcc_integration(software_name):
     """
@@ -820,13 +836,14 @@ def on_login_success(self):
     """
     Handle post-login tasks, including DCC software integration setup.
     """
+    print("Login succesful!")
     # Detect installed DCC software
-    installed_software = self.detect_installed_software()  # You'll need to implement this
+    #installed_software = self.detect_installed_software()  # You'll need to implement this
     
     # Set up integration for each detected software
-    for software in installed_software:
-        print(f"Setting up integration for {software}...")
-        setup_dcc_integration(software)
+    #for software in installed_software:
+    #    print(f"Setting up integration for {software}...")
+    #    setup_dcc_integration(software)
 
 def run_gui():
     print("Welcome to the most amazing task manager ever!")

@@ -197,6 +197,17 @@ def current_context_path():
     
     return working_dir, output_dir
 
+def create_main_directory(base_drive, root_folder):
+    root_path = Path(base_drive) / root_folder
+    if not root_path.exists():
+        print(f"Creating main directory on {root_path}...")
+        root_path.mkdir(parents=True, exist_ok=True)
+        print(f"Main directory created at: {root_path}")
+    else:
+        print(f"Main directory already exists at: {root_path}")
+    return root_path
+
+
 
 #map_kitsu_context_to_filetree(task_context)
 #current_context_path(task_context)
