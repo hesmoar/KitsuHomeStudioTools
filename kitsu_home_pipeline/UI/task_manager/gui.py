@@ -24,6 +24,7 @@ from kitsu_home_pipeline.utils import (
     get_project_short_name,
     get_task_short_name
 )
+from kitsu_home_pipeline.utils.kitsu_utils import get_project_code
 from kitsu_home_pipeline.utils.auth import connect_to_kitsu, kitsu_auto_login, load_credentials, clear_credentials
 from kitsu_home_pipeline.utils.file_utils import clean_up_temp_files, create_main_directory
 from kitsu_home_pipeline.UI.publisher.new_gui import run_publisher_gui
@@ -67,7 +68,9 @@ class TaskManager(QMainWindow):
         # Initialize software detection
         self.software_availability = {}
         #self.detect_installed_software()
-        self.initial_directory_setup(drive_letter='w', root_folder='KitsuProjects')
+        
+        # Set the initial directory
+        #self.initial_directory_setup(drive_letter='w', root_folder='KitsuProjects')
 
         stored_credentials = load_credentials()
         if stored_credentials:
@@ -690,13 +693,18 @@ class TaskManager(QMainWindow):
 
             elif action == action_publish:
                 from kitsu_home_pipeline.UI.publisher.new_gui import AgnosticPublisher
-                from kitsu_home_pipeline.utils.file_utils import create_context_file, create_project_directory
+                from kitsu_home_pipeline.utils.file_utils import create_context_file, create_entity_directory
                 print("Creating context file for selected task")
                 selected_task = self.get_selected_task()
                 if selected_task:
                     context = self.save_task_context(selected_task)
                     create_context_file(context)
-                    create_project_directory(self.root_directory, context["project_code"])
+                    create_entity_directory(self.root_directory, 
+                                             context["project_code"], 
+                                             context["task_type_for_entity"], 
+                                             context["task_code"],
+                                             context["entity_name"]
+                                            )
 
                 print("Launching Publisher")
                 self.publisher_window = AgnosticPublisher()
@@ -807,9 +815,11 @@ class TaskManager(QMainWindow):
             print(f"Network drive {drive_letter} not detected.")
 
     def initial_directory_setup(self, drive_letter, root_folder):
+        project_codes_dict = get_project_code()
+        project_codes = list(project_codes_dict.values())
         network_drive = self.network_drive_detected(drive_letter)
         if network_drive:
-            create_main_directory(network_drive, root_folder)
+            create_main_directory(network_drive, root_folder, project_codes)
             self.root_directory = os.path.join(network_drive, root_folder)
         else:
             self.root_directory = None

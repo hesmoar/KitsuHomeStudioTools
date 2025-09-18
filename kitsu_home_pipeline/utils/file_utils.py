@@ -197,27 +197,62 @@ def current_context_path():
     
     return working_dir, output_dir
 
-def create_main_directory(base_drive, root_folder):
-    root_path = Path(base_drive) / root_folder
-    if not root_path.exists():
-        print(f"Creating main directory on {root_path}...")
-        root_path.mkdir(parents=True, exist_ok=True)
-        print(f"Main directory created at: {root_path}")
-    else:
-        print(f"Main directory already exists at: {root_path}")
-    return root_path
+def create_main_directory(base_drive, root_folder, projects):
 
-def create_project_directory(root_path, project):
+    root_path = Path(base_drive) / root_folder
+    for project in projects:
+        project_path = Path(root_path) / project
+        subfolders = ["Publish", "Working"]
+        for subfolder in subfolders:
+            folder_path = project_path / subfolder
+            subSubfolders = ["Assets", "Shots"]
+            for subSubfolder in subSubfolders:
+                subfolder_path = folder_path / subSubfolder
+                if not subfolder_path.exists():
+                    print(f"Creating main directory on {subfolder_path}...")
+                    subfolder_path.mkdir(parents=True, exist_ok=True)
+                    print(f"Main directory created at: {subfolder_path}")
+                else:
+                    print(f"Main directory already exists at: {subfolder_path}")
+
+    print(f"THIS IS THE SUBFOLDER PATH: {subfolder_path}")
+    return subfolder_path
+
+def create_entity_directory(root_path, project, entity_type, task_code, entity_name):
     project_path = Path(root_path) / project
-    subfolders = ["Assets", "Shots"]
-    for subfolder in subfolders:
-        folder_path = project_path / subfolder
-        if not folder_path.exists():
-            print(f"Creating project directory at {project_path}...")
-            folder_path.mkdir(parents=True, exist_ok=True)
-            print(f"Project directory created at. {project_path}")
+    if entity_type.lower() == "shot":
+        #entity_path = Path()
+        #subfolders = [entity_name, task_code]
+        print("Creating directory for shot")
+        base_folder = "Shots"
+
+    elif entity_type.lower() == "asset":
+        print("Creating  directory for asset")
+        base_folder = "Assets"
+
+    else:
+        print(f"Unknown entity type: {entity_type}")
+        return
+    
+    for main_folder in ["Publish", "Working"]:
+        full_path = project_path / main_folder / base_folder / entity_name / task_code
+        if not full_path.exists():
+            print(f"Creating directory: {full_path}...")
+            #full_path.mkdir(parents=True, exist_ok=True)
         else:
-            print(f"Project directory already exists at: {project_path}")
+            print(f"Directory already exists: {full_path}")
+
+
+    #project_path = Path(root_path) / project
+    #subfolders = ["Assets", "Shots"]
+    #for subfolder in subfolders:
+    #    folder_path = project_path / subfolder
+    #    if not folder_path.exists():
+    #        print(f"Creating project directory at {project_path}...")
+    #        folder_path.mkdir(parents=True, exist_ok=True)
+    #        print(f"Project directory created at. {project_path}")
+    #    else:
+    #        print(f"Project directory already exists at: {project_path}")
 
 
 

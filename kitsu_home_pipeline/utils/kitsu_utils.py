@@ -21,6 +21,15 @@ def get_user_projects():
     #pprint.pprint(projects)
     return project_names
 
+def get_project_code():
+    projects = get_user_projects()
+    project_codes = {}
+    for project in projects:
+        project_info = gazu.project.get_project_by_name(project)
+        if project_info:
+            project_codes[project] = project_info.get("code", "")
+    return project_codes
+
 def get_project_info(project_name=None):
     if not project_name:
         print("No project name provided)")
