@@ -207,6 +207,18 @@ def create_main_directory(base_drive, root_folder):
         print(f"Main directory already exists at: {root_path}")
     return root_path
 
+def create_project_directory(root_path, project):
+    project_path = Path(root_path) / project
+    subfolders = ["Assets", "Shots"]
+    for subfolder in subfolders:
+        folder_path = project_path / subfolder
+        if not folder_path.exists():
+            print(f"Creating project directory at {project_path}...")
+            folder_path.mkdir(parents=True, exist_ok=True)
+            print(f"Project directory created at. {project_path}")
+        else:
+            print(f"Project directory already exists at: {project_path}")
+
 
 
 #map_kitsu_context_to_filetree(task_context)

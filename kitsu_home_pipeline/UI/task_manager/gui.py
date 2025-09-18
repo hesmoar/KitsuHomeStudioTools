@@ -67,7 +67,7 @@ class TaskManager(QMainWindow):
         # Initialize software detection
         self.software_availability = {}
         #self.detect_installed_software()
-        self.initial_directory_setup(drive_letter='k', root_folder='KitsuProjects')
+        self.initial_directory_setup(drive_letter='w', root_folder='KitsuProjects')
 
         stored_credentials = load_credentials()
         if stored_credentials:
@@ -690,12 +690,13 @@ class TaskManager(QMainWindow):
 
             elif action == action_publish:
                 from kitsu_home_pipeline.UI.publisher.new_gui import AgnosticPublisher
-                from kitsu_home_pipeline.utils.file_utils import create_context_file
+                from kitsu_home_pipeline.utils.file_utils import create_context_file, create_project_directory
                 print("Creating context file for selected task")
                 selected_task = self.get_selected_task()
                 if selected_task:
                     context = self.save_task_context(selected_task)
                     create_context_file(context)
+                    create_project_directory(self.root_directory, context["project_code"])
 
                 print("Launching Publisher")
                 self.publisher_window = AgnosticPublisher()
@@ -809,6 +810,9 @@ class TaskManager(QMainWindow):
         network_drive = self.network_drive_detected(drive_letter)
         if network_drive:
             create_main_directory(network_drive, root_folder)
+            self.root_directory = os.path.join(network_drive, root_folder)
+        else:
+            self.root_directory = None
 
 
 def setup_dcc_integration(software_name):
