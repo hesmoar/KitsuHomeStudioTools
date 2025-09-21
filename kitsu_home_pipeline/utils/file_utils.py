@@ -236,11 +236,13 @@ def create_entity_directory(root_path, project, entity_type, task_code, entity_n
     
     for main_folder in ["Publish", "Working"]:
         full_path = project_path / main_folder / base_folder / entity_name / task_code
-        if not full_path.exists():
+        try:
             print(f"Creating directory: {full_path}...")
-            #full_path.mkdir(parents=True, exist_ok=True)
-        else:
-            print(f"Directory already exists: {full_path}")
+            full_path.mkdir(parents=True, exist_ok=True)
+        except Exception as e:
+            print(f"Error creating directory {full_path}: {e}")
+            #print(f"Directory already exists: {full_path}")
+
 
 
     #project_path = Path(root_path) / project

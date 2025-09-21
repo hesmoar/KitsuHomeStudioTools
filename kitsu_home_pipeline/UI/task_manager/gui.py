@@ -24,10 +24,10 @@ from kitsu_home_pipeline.utils import (
     get_project_short_name,
     get_task_short_name
 )
-from kitsu_home_pipeline.utils.kitsu_utils import get_project_code
 from kitsu_home_pipeline.utils.auth import connect_to_kitsu, kitsu_auto_login, load_credentials, clear_credentials
 from kitsu_home_pipeline.utils.file_utils import clean_up_temp_files, create_main_directory
 from kitsu_home_pipeline.UI.publisher.new_gui import run_publisher_gui
+from kitsu_home_pipeline.utils.kitsu_utils import get_project_code
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -70,7 +70,8 @@ class TaskManager(QMainWindow):
         #self.detect_installed_software()
         
         # Set the initial directory
-        #self.initial_directory_setup(drive_letter='w', root_folder='KitsuProjects')
+
+#TODO: Fix this, as its not working correctly
 
         stored_credentials = load_credentials()
         if stored_credentials:
@@ -250,7 +251,6 @@ class TaskManager(QMainWindow):
                 self.selections["username"],
                 self.selections["password"]
             )
-
             self.update_ui_with_kitsu()
             # Set up DCC integrations after successful login
             #self.setup_dcc_integrations()
@@ -315,6 +315,8 @@ class TaskManager(QMainWindow):
         project_names, project_dict = get_user_projects()
 
     def update_ui_with_kitsu(self):
+
+        self.initial_directory_setup(drive_letter='k', root_folder='KitsuProjects')
 
         # Main Window
         self.setGeometry(100, 100, 1200, 600)
@@ -813,16 +815,19 @@ class TaskManager(QMainWindow):
             return drive_path
         else:
             print(f"Network drive {drive_letter} not detected.")
+            return None
 
     def initial_directory_setup(self, drive_letter, root_folder):
         project_codes_dict = get_project_code()
+        pprint.pprint(project_codes_dict)
         project_codes = list(project_codes_dict.values())
         network_drive = self.network_drive_detected(drive_letter)
-        if network_drive:
+        if network_drive and all(project_codes):
             create_main_directory(network_drive, root_folder, project_codes)
             self.root_directory = os.path.join(network_drive, root_folder)
         else:
             self.root_directory = None
+            QMessageBox.warning(self, "Directory Setup Failed", "Network drive or project codes not found. Please check your configuration.")
 
 
 def setup_dcc_integration(software_name):
