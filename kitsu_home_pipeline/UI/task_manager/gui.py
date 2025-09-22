@@ -25,7 +25,7 @@ from kitsu_home_pipeline.utils import (
     get_task_short_name
 )
 from kitsu_home_pipeline.utils.auth import connect_to_kitsu, kitsu_auto_login, load_credentials, clear_credentials
-from kitsu_home_pipeline.utils.file_utils import clean_up_temp_files, create_main_directory
+from kitsu_home_pipeline.utils.file_utils import clean_up_temp_files, create_main_directory, collect_published_files
 from kitsu_home_pipeline.UI.publisher.new_gui import run_publisher_gui
 from kitsu_home_pipeline.utils.kitsu_utils import get_project_code
 
@@ -431,6 +431,7 @@ class TaskManager(QMainWindow):
 
         self.tasks_list = QListWidget(self)
         self.tasks_list.addItems(["Your tasks"])
+        self.tasks_list.itemClicked.connect(self.on_task_selected)
         tasks_layout.addWidget(self.tasks_list)
 
         third_column.addWidget(tasks_group)
@@ -459,7 +460,7 @@ class TaskManager(QMainWindow):
 
         self.versions_list = QListWidget(self)
         self.versions_list.addItems(["Versions"])
-        #self.versions_list.itemClicked.connect(self.on_entity_selected)
+        #self.versions_list.itemClicked.connect(self.on_task_selected)
         versions_layout.addWidget(self.versions_list)
 
         second_right_column.addWidget(versions_group)
@@ -599,6 +600,20 @@ class TaskManager(QMainWindow):
             sequence = task["sequence"]
             self.add_task_to_list(task_name, due_date, status, selected_entity, id, project_code, task_code, entity_type_name, project_id, task_type_for_entity, sequence)
     
+    def on_task_selected(self):
+        selected_task = self.get_selected_task()
+        if selected_task:
+            context = self.save_task_context(selected_task)
+            path = os.path.join(self.root_directory, context["project_code"], "Publish", context["task_type_for_entity"], context["entity_name"], context["task_code"])
+            print("THIS IS THE PATH where we will look for published files")
+            print(path)
+            published_files = collect_published_files(path)
+    
+            self.versions_list.clear()
+    
+            for file in published_files:
+                self.versions_list.addItem(os.path.basename(file))
+
     def get_selected_task(self):
         selected_item = self.tasks_list.currentItem()
         print(f"Selected item: {selected_item.text()}")
@@ -701,7 +716,7 @@ class TaskManager(QMainWindow):
                 if selected_task:
                     context = self.save_task_context(selected_task)
                     create_context_file(context)
-                    create_entity_directory(self.root_directory, 
+                    publish_path, working_path = create_entity_directory(self.root_directory, 
                                              context["project_code"], 
                                              context["task_type_for_entity"], 
                                              context["task_code"],

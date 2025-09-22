@@ -7,6 +7,7 @@ import json
 import pprint
 from kitsu_home_pipeline.UI.publisher.kitsu_project_context import get_context_from_json
 from kitsu_home_pipeline.task_manager.software_utils import get_tmp_context_dir
+from kitsu_home_pipeline.utils.file_utils import get_unique_filename
 #from render_utils import renders_to_publish, final_full_cut_path
 
 
@@ -19,23 +20,23 @@ task_context = get_context_from_json(get_tmp_context_dir())
 #TODO: Add functionality to get the context from the file tree in kitsu using the function from the kitsu_utils file.
 #TODO: Pass the file through the unique file name function to get the correct file name, or come up with a better validation system. 
 
-def get_unique_filename(base_name, directory, extension=""):
-    """Generate a unique filename with an incremental version number."""
-    if not os.path.exists(directory):
-        print(f"Error: Export directory '{directory}' does not exist.")
-        return None, None
-    extension = f".{extension}" if extension else ""
-    existing_versions = [ 
-        int(filename[len(base_name) + 2 : -len(extension)] )
-        for filename in os.listdir(directory)
-        if filename.startswith(base_name) and filename.endswith(extension)
-        and filename[len(base_name) + 2 : -len(extension)].isdigit()
-    ]
-
-    version = max(existing_versions, default=0) + 1
-    filename = f"{base_name}_v{version:03d}{extension}"
-    full_file_path = os.path.join(directory, filename)
-    return os.path.join(directory, filename), filename
+#def get_unique_filename(base_name, directory, extension=""):
+#    """Generate a unique filename with an incremental version number."""
+#    if not os.path.exists(directory):
+#        print(f"Error: Export directory '{directory}' does not exist.")
+#        return None, None
+#    extension = f".{extension}" if extension else ""
+#    existing_versions = [ 
+#        int(filename[len(base_name) + 2 : -len(extension)] )
+#        for filename in os.listdir(directory)
+#        if filename.startswith(base_name) and filename.endswith(extension)
+#        and filename[len(base_name) + 2 : -len(extension)].isdigit()
+#    ]
+#
+#    version = max(existing_versions, default=0) + 1
+#    filename = f"{base_name}_v{version:03d}{extension}"
+#    full_file_path = os.path.join(directory, filename)
+#    return os.path.join(directory, filename), filename
 
 def export_edl(project, export_directory):
     """Export an EDL file with a unique filename."""

@@ -214,7 +214,7 @@ def create_main_directory(base_drive, root_folder, projects):
         subfolders = ["Publish", "Working"]
         for subfolder in subfolders:
             folder_path = project_path / subfolder
-            subSubfolders = ["Assets", "Shots"]
+            subSubfolders = ["Asset", "Shot"]
             for subSubfolder in subSubfolders:
                 subfolder_path = folder_path / subSubfolder
                 if not subfolder_path.exists():
@@ -233,11 +233,11 @@ def create_entity_directory(root_path, project, entity_type, task_code, entity_n
         #entity_path = Path()
         #subfolders = [entity_name, task_code]
         print("Creating directory for shot")
-        base_folder = "Shots"
+        base_folder = "Shot"
 
     elif entity_type.lower() == "asset":
         print("Creating  directory for asset")
-        base_folder = "Assets"
+        base_folder = "Asset"
 
     else:
         print(f"Unknown entity type: {entity_type}")
