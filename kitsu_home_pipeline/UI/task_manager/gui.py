@@ -316,7 +316,7 @@ class TaskManager(QMainWindow):
 
     def update_ui_with_kitsu(self):
 
-        self.initial_directory_setup(drive_letter='k', root_folder='KitsuProjects')
+        self.initial_directory_setup(drive_letter='w', root_folder='KitsuProjects')
 
         # Main Window
         self.setGeometry(100, 100, 1200, 600)
@@ -807,21 +807,22 @@ class TaskManager(QMainWindow):
                 f"Error setting up DCC integrations: {str(e)}\n\n"
                 "Please check the logs for more details.")
             
-    def network_drive_detected(self, drive_letter):
-        drive_path = f"{drive_letter.upper()}:\\"
-        print(f"Checking for drive: {drive_path}")
-        if os.path.exists(drive_path):
-            print(f"Network drive {drive_letter} detected")
-            return drive_path
-        else:
-            print(f"Network drive {drive_letter} not detected.")
-            return None
+    #def network_drive_detected(self, drive_letter):
+    #    drive_path = f"{drive_letter.upper()}:\\"
+    #    print(f"Checking for drive: {drive_path}")
+    #    if os.path.exists(drive_path):
+    #        print(f"Network drive {drive_letter} detected")
+    #        return drive_path
+    #    else:
+    #        print(f"Network drive {drive_letter} not detected.")
+    #        return None
 
     def initial_directory_setup(self, drive_letter, root_folder):
+        from kitsu_home_pipeline.utils.file_utils import network_drive_detected
         project_codes_dict = get_project_code()
         pprint.pprint(project_codes_dict)
         project_codes = list(project_codes_dict.values())
-        network_drive = self.network_drive_detected(drive_letter)
+        network_drive = network_drive_detected(drive_letter)
         if network_drive and all(project_codes):
             create_main_directory(network_drive, root_folder, project_codes)
             self.root_directory = os.path.join(network_drive, root_folder)

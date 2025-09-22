@@ -179,6 +179,15 @@ def generate_paths(context, path_types=("working", "output")):
     pprint.pprint(full_paths)
     return all_paths
 
+def network_drive_detected(drive_letter):
+    drive_path = f"{drive_letter.upper()}:\\"
+    print(f"Checking for drive: {drive_path}")
+    if os.path.exists(drive_path):
+        print(f"Network drive {drive_letter} detected")
+        return drive_path
+    else:
+        print(f"Network drive {drive_letter} not detected.")
+        return None
 
 def current_context_path():
     filetree_context = map_kitsu_context_to_filetree()
@@ -215,7 +224,7 @@ def create_main_directory(base_drive, root_folder, projects):
                 else:
                     print(f"Main directory already exists at: {subfolder_path}")
 
-    print(f"THIS IS THE SUBFOLDER PATH: {subfolder_path}")
+    #print(f"THIS IS THE SUBFOLDER PATH: {subfolder_path}")
     return subfolder_path
 
 def create_entity_directory(root_path, project, entity_type, task_code, entity_name):
@@ -232,32 +241,81 @@ def create_entity_directory(root_path, project, entity_type, task_code, entity_n
 
     else:
         print(f"Unknown entity type: {entity_type}")
-        return
+        return None, None
     
-    for main_folder in ["Publish", "Working"]:
-        full_path = project_path / main_folder / base_folder / entity_name / task_code
+    publish_path = project_path / "Publish" / base_folder / entity_name / task_code
+    working_path = project_path / "Working" / base_folder / entity_name / task_code
+    
+    for full_path in [publish_path, working_path]:
         try:
             print(f"Creating directory: {full_path}...")
             full_path.mkdir(parents=True, exist_ok=True)
         except Exception as e:
             print(f"Error creating directory {full_path}: {e}")
             #print(f"Directory already exists: {full_path}")
+    return str(publish_path), str(working_path)
+
+def move_working_to_publish(src_directory, dst_directory):
+    src = Path(src_directory)
+    dst = Path(dst_directory)
+
+    if not dst.exists():
+        print(f"Copying file to publish: {dst}")
+        shutil.copy2(src, dst)
+        print("File Copy succesfull")
+    else:
+        print("File already in publish. Skipping Copy.")
+
+def create_file_name(entity_name, task_code):
+    base_name = f"{entity_name}_{task_code}"
+
+    print(f"This is the filename: {base_name} ")
+    return base_name
 
 
 
-    #project_path = Path(root_path) / project
-    #subfolders = ["Assets", "Shots"]
-    #for subfolder in subfolders:
-    #    folder_path = project_path / subfolder
-    #    if not folder_path.exists():
-    #        print(f"Creating project directory at {project_path}...")
-    #        folder_path.mkdir(parents=True, exist_ok=True)
-    #        print(f"Project directory created at. {project_path}")
-    #    else:
-    #        print(f"Project directory already exists at: {project_path}")
+def collect_published_files(src_directory):
+    published_files = {}
+    ignored_files = {"desktop.ini", ".ds_store", "thumbs.db"}
+    src = Path(src_directory)
+    #if src.exists() and src.is_dir():
+    if os.path.exists(src_directory) and os.path.isdir(src_directory):
+        print(f"Scanning directory: {src_directory}")
+        try:
+            with os.scandir(src_directory) as entries:
+                for entry in entries:
+                    if entry.is_file() and entry.name.lower() not in ignored_files:
+                        published_files[entry.name] = entry.path
+                        print(f"Found published file {entry.name}")
+                    else:
+                        print(f"This is not a file {entry.name}")
+        except Exception as e:
+            print(f"Error scanning directory {src_directory}")
+    else:
+        print(f"Source directory does not exist {src_directory}")
 
+    print("Collected files: ")
+    for name, path in published_files.items():
+        print(f"{name}: {path}")
 
+    return published_files
 
-#map_kitsu_context_to_filetree(task_context)
-#current_context_path(task_context)
+def get_unique_filename(base_name, directory, extension=""):
+    """Generate a unique filename with an incremental version number."""
+    if not os.path.exists(directory):
+        print(f"Error: Export directory '{directory}' does not exist.")
+        return None, None
+    extension = f".{extension}" if extension else ""
+    existing_versions = [ 
+        int(filename[len(base_name) + 2 : -len(extension)] )
+        for filename in os.listdir(directory)
+        if filename.startswith(base_name) and filename.endswith(extension)
+        and filename[len(base_name) + 2 : -len(extension)].isdigit()
+    ]
+
+    version = max(existing_versions, default=0) + 1
+    filename = f"{base_name}_v{version:03d}{extension}"
+    full_file_path = os.path.join(directory, filename)
+    print(f"This is the full file path CHECK NOW!: {full_file_path}")
+    return os.path.join(directory, filename), filename
 

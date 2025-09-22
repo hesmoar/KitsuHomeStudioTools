@@ -629,7 +629,7 @@ class AgnosticPublisher(QMainWindow):
         self.action_buttons = ActionButtonsWidget()
         
         files_layout.addWidget(self.create_file_section("Working Files", self.working_file_gallery))
-        files_layout.addWidget(self.create_file_section("Output Files", self.output_file_gallery))
+        files_layout.addWidget(self.create_file_section("Preview Files", self.output_file_gallery))
         
         # Add widgets to main layout
         main_layout.addWidget(self.header_widget)
@@ -685,10 +685,15 @@ class AgnosticPublisher(QMainWindow):
     def start_process(self):
         """Start process and set selections"""
         from kitsu_home_pipeline.utils.kitsu_utils import create_preview_file, create_working_file, create_output_file, working_file_path#, output_file_path
+        from kitsu_home_pipeline.utils.file_utils import move_working_to_publish, create_entity_directory, create_file_name, get_unique_filename
         import gazu
         # Get selected files
         working_files = self.working_file_gallery.get_files()
         output_files = self.output_file_gallery.get_files()
+
+        project_code = self.context.get("project_code")
+        task_code = self.context.get("task_code")
+        print(f"Project code in publisher gui: {project_code}")
         
         # Set selections based on current state
         self.selections = {
@@ -743,8 +748,28 @@ class AgnosticPublisher(QMainWindow):
         #    description,
         #    file_path
         #)
-        
         print(f"Starting process with {len(output_files + working_files)} files...")
+
+        publish_path, working_path = create_entity_directory("W:/KitsuProjects",
+                                                             project_code,
+                                                             self.task_type_for_entity,
+                                                             task_code,
+                                                             self.entity_name)
+        print(f"Publish path: {publish_path}")
+        print(f"Working path: {working_path}")
+
+        file_base_name = create_file_name(self.entity_name, task_code)
+        src_file = self.selections["working_files"][0]
+        _, extension = os.path.splitext(src_file)
+        extension = extension.lstrip(".")
+
+        unique_full_path, unique_file_name = get_unique_filename(file_base_name, publish_path, extension)
+
+
+
+
+
+        move_working_to_publish(self.selections["working_files"][0], unique_full_path)
         self.close()
     
     def cancel_and_exit(self):
