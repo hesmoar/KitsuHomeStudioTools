@@ -758,7 +758,7 @@ class AgnosticPublisher(QMainWindow):
         print(f"Publish path: {publish_path}")
         print(f"Working path: {working_path}")
 
-        file_base_name = create_file_name(self.entity_name, task_code)
+        file_base_name = create_file_name(project_code, self.entity_name, task_code)
         src_file = self.selections["working_files"][0]
         _, extension = os.path.splitext(src_file)
         extension = extension.lstrip(".")

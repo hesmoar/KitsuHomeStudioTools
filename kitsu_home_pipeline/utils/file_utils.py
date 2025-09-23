@@ -266,8 +266,8 @@ def move_working_to_publish(src_directory, dst_directory):
     else:
         print("File already in publish. Skipping Copy.")
 
-def create_file_name(entity_name, task_code):
-    base_name = f"{entity_name}_{task_code}"
+def create_file_name(project_code, entity_name, task_code):
+    base_name = f"{project_code}_{entity_name}_{task_code}"
 
     print(f"This is the filename: {base_name} ")
     return base_name
