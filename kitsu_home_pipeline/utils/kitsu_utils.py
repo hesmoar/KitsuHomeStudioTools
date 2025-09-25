@@ -7,6 +7,13 @@ import json
 from kitsu_home_pipeline.utils.context_from_json import get_context_from_json 
 
 
+def get_user_info(user_email):
+    user_info = gazu.person.get_person_by_email(user_email)
+    if user_info:
+        return user_info
+    else:
+        print("User not found")
+
 def get_user_projects():
     project_names = []
     projects ={}

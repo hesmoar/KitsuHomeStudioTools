@@ -27,7 +27,8 @@ from kitsu_home_pipeline.utils import (
 from kitsu_home_pipeline.utils.auth import connect_to_kitsu, kitsu_auto_login, load_credentials, clear_credentials
 from kitsu_home_pipeline.utils.file_utils import clean_up_temp_files, create_main_directory, collect_published_files
 from kitsu_home_pipeline.UI.publisher.new_gui import run_publisher_gui
-from kitsu_home_pipeline.utils.kitsu_utils import get_project_code
+from kitsu_home_pipeline.utils.kitsu_utils import get_project_code, get_user_info
+from kitsu_home_pipeline.UI.task_manager.log_console import LogConsole
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -340,7 +341,10 @@ class TaskManager(QMainWindow):
         header_left_column = QVBoxLayout()
         header_left_column.setAlignment(Qt.AlignLeft)
 
-        self.header_label = QLabel(f"Welcome", self)
+        user_info = get_user_info(self.selections["username"])
+        user_name = user_info.get("first_name", "") + " " + user_info.get("last_name", "")
+
+        self.header_label = QLabel(f"Welcome: {user_name}", self)
         self.header_label.setAlignment(Qt.AlignLeft)
         self.header_label.setStyleSheet("font-size: 24px; font-weight: bold;")
         header_left_column.addWidget(self.header_label)
@@ -363,7 +367,8 @@ class TaskManager(QMainWindow):
 
         menu = QMenu(self)
         menu.addAction(self.selections["username"], self.view_profile)
-        menu.addAction("Settings", self.view_settings)
+        #menu.addAction("Settings", self.view_settings)
+        menu.addAction("Console logs", self.view_console)
         menu.addAction("Logout", self.logout)
 
         self.username_button.setMenu(menu)
@@ -490,6 +495,13 @@ class TaskManager(QMainWindow):
 
     def view_settings(self):
         QMessageBox.information(self, "Settings", "Opening settings...")
+    
+    def view_console(self):
+        if not hasattr(self, "log_console") or self.log_console is None:
+            self.log_console = LogConsole()
+            self.log_console.show()
+            self.log_console.raise_()
+            self.log_console.activateWindow()
 
     def add_task_to_list(self, task_type_name, due_date, status, entity_name, id, project_code, task_code, entity_type_name, project_id, task_type_for_entity, sequence):
         # Create a custom widget for the task
@@ -768,59 +780,65 @@ class TaskManager(QMainWindow):
             selected_task = selected_items[0].text()
             QMessageBox.information(self, "Task Details", f"Details for task: {selected_task}")
     
-    def setup_dcc_integrations(self):
-        """Setup DCC software integrations."""
-        try:
-            # Use already detected software instead of detecting again
-            logger.info(f"Using detected software: {self.software_availability}")
+    def closeEvent(self, event):
+        if hasattr(self, "publisher_window") and self.publisher_window is not None:
+            self.publisher_window.close()
+        event.accept()
 
-            # Setup Resolve integration if available
-            if self.software_availability.get("Resolve"):
-                logger.info("Setting up Resolve integration")
-                from kitsu_home_pipeline.integrations.resolve.setup_utils import setup_resolve_integration, ResolveSetup
-                
-                # Get the source scripts directory
-                source_scripts_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "integrations", "resolve", "scripts")
-                logger.info(f"Source scripts directory: {source_scripts_dir}")
-                
-                # Setup integration (this will also set up environment variables)
-                setup = ResolveSetup()
-                success = setup.setup_integration(source_scripts_dir)
-                
-                if success:
-                    # Verify the environment
-                    verification = setup.verify_environment()
-                    
-                    if verification["success"]:
-                        logger.info("Resolve integration has been set up successfully!")
-                        logger.info("Environment variables have been configured.")
-                        QMessageBox.information(self, "Setup Complete", 
-                            "Resolve integration has been set up successfully!\n"
-                            "The Kitsu publisher script has been installed in the Resolve Fusion Scripts directory.")
-                    else:
-                        # Create setup instructions
-                        setup._create_setup_instructions()
-                        
-                        # Show verification results only if there are issues
-                        missing_vars = "\n".join(f"- {var}" for var in verification["missing_vars"])
-                        msg = QMessageBox()
-                        msg.setIcon(QMessageBox.Warning)
-                        msg.setWindowTitle("Setup Verification")
-                        msg.setText("Some environment variables could not be set automatically.")
-                        msg.setInformativeText(f"Missing or invalid variables:\n{missing_vars}\n\n"
-                                             f"Please check the setup instructions at:\n{verification['instructions_file']}")
-                        msg.setStandardButtons(QMessageBox.Ok)
-                        msg.exec_()
-                else:
-                    QMessageBox.critical(self, "Setup Error", 
-                        "Failed to set up Resolve integration.\n"
-                        "Please check the logs for more details.")
-
-        except Exception as e:
-            logger.error(f"Error setting up DCC integrations: {str(e)}")
-            QMessageBox.critical(self, "Setup Error", 
-                f"Error setting up DCC integrations: {str(e)}\n\n"
-                "Please check the logs for more details.")
+    
+    #def setup_dcc_integrations(self):
+    #    """Setup DCC software integrations."""
+    #    try:
+    #        # Use already detected software instead of detecting again
+    #        logger.info(f"Using detected software: {self.software_availability}")
+#
+    #        # Setup Resolve integration if available
+    #        if self.software_availability.get("Resolve"):
+    #            logger.info("Setting up Resolve integration")
+    #            from kitsu_home_pipeline.integrations.resolve.setup_utils import setup_resolve_integration, ResolveSetup
+    #            
+    #            # Get the source scripts directory
+    #            source_scripts_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "integrations", "resolve", "scripts")
+    #            logger.info(f"Source scripts directory: {source_scripts_dir}")
+    #            
+    #            # Setup integration (this will also set up environment variables)
+    #            setup = ResolveSetup()
+    #            success = setup.setup_integration(source_scripts_dir)
+    #            
+    #            if success:
+    #                # Verify the environment
+    #                verification = setup.verify_environment()
+    #                
+    #                if verification["success"]:
+    #                    logger.info("Resolve integration has been set up successfully!")
+    #                    logger.info("Environment variables have been configured.")
+    #                    QMessageBox.information(self, "Setup Complete", 
+    #                        "Resolve integration has been set up successfully!\n"
+    #                        "The Kitsu publisher script has been installed in the Resolve Fusion Scripts directory.")
+    #                else:
+    #                    # Create setup instructions
+    #                    setup._create_setup_instructions()
+    #                    
+    #                    # Show verification results only if there are issues
+    #                    missing_vars = "\n".join(f"- {var}" for var in verification["missing_vars"])
+    #                    msg = QMessageBox()
+    #                    msg.setIcon(QMessageBox.Warning)
+    #                    msg.setWindowTitle("Setup Verification")
+    #                    msg.setText("Some environment variables could not be set automatically.")
+    #                    msg.setInformativeText(f"Missing or invalid variables:\n{missing_vars}\n\n"
+    #                                         f"Please check the setup instructions at:\n{verification['instructions_file']}")
+    #                    msg.setStandardButtons(QMessageBox.Ok)
+    #                    msg.exec_()
+    #            else:
+    #                QMessageBox.critical(self, "Setup Error", 
+    #                    "Failed to set up Resolve integration.\n"
+    #                    "Please check the logs for more details.")
+#
+    #    except Exception as e:
+    #        logger.error(f"Error setting up DCC integrations: {str(e)}")
+    #        QMessageBox.critical(self, "Setup Error", 
+    #            f"Error setting up DCC integrations: {str(e)}\n\n"
+    #            "Please check the logs for more details.")
             
     #def network_drive_detected(self, drive_letter):
     #    drive_path = f"{drive_letter.upper()}:\\"
@@ -846,26 +864,26 @@ class TaskManager(QMainWindow):
             QMessageBox.warning(self, "Directory Setup Failed", "Network drive or project codes not found. Please check your configuration.")
 
 
-def setup_dcc_integration(software_name):
-    """
-    Set up integration for a specific DCC software.
-    
-    Args:
-        software_name (str): Name of the DCC software (e.g., 'resolve', 'krita')
-    """
-    try:
-        if software_name.lower() == 'resolve':
-            from kitsu_home_pipeline.integrations.resolve.setup_utils import setup_resolve_integration
-            source_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'integrations', 'resolve')
-            if setup_resolve_integration(source_dir):
-                logger.info("Successfully set up Resolve integration")
-            else:
-                logger.error("Failed to set up Resolve integration")
-        # Add other DCC software integrations here
-        # elif software_name.lower() == 'krita':
-        #     ...
-    except Exception as e:
-        logger.error(f"Error setting up {software_name} integration: {e}")
+#def setup_dcc_integration(software_name):
+#    """
+#    Set up integration for a specific DCC software.
+#    
+#    Args:
+#        software_name (str): Name of the DCC software (e.g., 'resolve', 'krita')
+#    """
+#    try:
+#        if software_name.lower() == 'resolve':
+#            from kitsu_home_pipeline.integrations.resolve.setup_utils import setup_resolve_integration
+#            source_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'integrations', 'resolve')
+#            if setup_resolve_integration(source_dir):
+#                logger.info("Successfully set up Resolve integration")
+#            else:
+#                logger.error("Failed to set up Resolve integration")
+#        # Add other DCC software integrations here
+#        # elif software_name.lower() == 'krita':
+#        #     ...
+#    except Exception as e:
+#        logger.error(f"Error setting up {software_name} integration: {e}")
 
 def on_login_success(self):
     """

@@ -733,24 +733,26 @@ class AgnosticPublisher(QMainWindow):
         entity = gazu.entity.get_entity_by_name(self.selections["entity_name"], project)
 
         working_file_path(task_context_from_name, software)
-        create_working_file(
-            task_context_from_name,
-            software,
-            description,
-            person,
-            file_path
-        )
-        #output_file_path(entity)
-        #create_output_file()
-        #create_preview_file(
+        #create_working_file(
         #    task_context_from_name,
-        #    person,
+        #    software,
         #    description,
+        #    person,
         #    file_path
         #)
+        #output_file_path(entity)
+        #create_output_file()
+        create_preview_file(
+            task_context_from_name,
+            person,
+            description,
+            file_path
+        )
         print(f"Starting process with {len(output_files + working_files)} files...")
 
-        publish_path, working_path = create_entity_directory("W:/KitsuProjects",
+        root_path = "W:/KitsuProjects"
+
+        publish_path, working_path = create_entity_directory(root_path,
                                                              project_code,
                                                              self.task_type_for_entity,
                                                              task_code,
@@ -771,7 +773,17 @@ class AgnosticPublisher(QMainWindow):
 
         move_working_to_publish(self.selections["working_files"][0], unique_full_path)
         self.close()
-    
+
+        publish_msg = QMessageBox()
+        custom_icon = QPixmap(os.path.join(current_dir, "icons", "Published.ico"))
+        #publish_msg.setIconPixmap(custom_icon)#.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        #publish_msg.setIcon(QMessageBox.checkBox)
+        publish_msg.setWindowTitle("Publish Complete")
+        publish_msg.setText(f"You did it!, Preview is in kitsu and working file moved to {publish_path}")
+        publish_msg.setStandardButtons(QMessageBox.Ok)
+        publish_msg.exec()
+        #QMessageBox.information(self, "Publish complete", f"Files have been published to kitsu and moved to {publish_path}")
+
     def cancel_and_exit(self):
         """Cancel and exit the application"""
         # Clean up any running threads
@@ -781,7 +793,7 @@ class AgnosticPublisher(QMainWindow):
                 thread.wait()
         
         # Close the application properly
-        QApplication.quit()
+        self.close()
     
     def browse_files(self, gallery):
         """Browse and select files to publish"""
