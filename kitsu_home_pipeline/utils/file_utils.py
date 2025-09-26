@@ -302,7 +302,20 @@ def collect_published_files(src_directory):
 
 def create_working_file(published_directory, working_directory):
     #This function should do the following: from the published directory using the get unique filename function it should increase the version number by 1, then copy that file into the working_directory
-    pass
+    #published_directory = Path(published_directory)
+    directory = os.path.dirname(published_directory)
+    base_name = os.path.basename(published_directory).split(".")[0]
+    extension = os.path.splitext(published_directory)[1].lstrip(".")
+    print("This is the published file information: ")
+    print(extension)
+    print(base_name)
+    print(directory)
+    new_path, new_filename = get_unique_filename(base_name, directory, extension)
+
+    print(new_path)
+
+    #if new_path:
+    #    print(f"Creating working file:{new_filename} at {new_path}")
 
 def open_file_location(file_path):
     if os.path.exists(file_path):
@@ -331,3 +344,4 @@ def get_unique_filename(base_name, directory, extension=""):
     print(f"This is the full file path CHECK NOW!: {full_file_path}")
     return os.path.join(directory, filename), filename
 
+      

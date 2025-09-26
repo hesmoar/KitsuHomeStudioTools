@@ -784,19 +784,41 @@ class TaskManager(QMainWindow):
         elif self.versions_list.underMouse():
             menu = QMenu(self)
             action_open_directory = menu.addAction("File location")
+            action_create_working = menu.addAction("Create working file from publish")
 
             action = menu.exec(self.mapToGlobal(event.pos()))
             if action:
                 print(self.versions_list.currentItem())
             
+            
+            selected_version = self.versions_list.currentItem()
+            file_path = self.published_files.get(selected_version.text())
+            print(f"THIS IS THE FILE PATH VALUE: {file_path}")
 
             if action == action_open_directory:
                 from kitsu_home_pipeline.utils.file_utils import open_file_location
                 print("Opening file location...")
-                selected_version = self.versions_list.currentItem()
-                file_path = self.published_files.get(selected_version.text())
+                #selected_version = self.versions_list.currentItem()
+                #file_path = self.published_files.get(selected_version.text())
                 if file_path:
                     open_file_location(file_path)
+
+            elif action == action_create_working:
+                from kitsu_home_pipeline.utils.file_utils import create_working_file
+                print("Creating working file from publish...")
+
+                working_directory = r"W:\KitsuProjects\epic\Working\Shot"
+                #basename = os.path.basename(file_path).split(".")[0]
+                #directory = os.path.dirname(file_path)
+                #extension = os.path.splitext(file_path)[1].lstrip(".")
+                #print(f"This is the file basename: {basename}")
+                #print(f"This is the file directory: {directory}")
+                #print(f"This is the file extension: {extension}")
+
+                
+                create_working_file(file_path, working_directory)
+
+
     def on_version_selected(self, item):
         print(f"Selected version: {item.text()}")
         file_name = item.text()
