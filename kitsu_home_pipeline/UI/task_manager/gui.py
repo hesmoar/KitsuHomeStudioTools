@@ -465,7 +465,7 @@ class TaskManager(QMainWindow):
 
         self.versions_list = QListWidget(self)
         self.versions_list.addItems(["Versions"])
-        #self.versions_list.itemClicked.connect(self.on_task_selected)
+        self.versions_list.itemClicked.connect(self.on_version_selected)
         versions_layout.addWidget(self.versions_list)
 
         second_right_column.addWidget(versions_group)
@@ -619,12 +619,19 @@ class TaskManager(QMainWindow):
             path = os.path.join(self.root_directory, context["project_code"], "Publish", context["task_type_for_entity"], context["entity_name"], context["task_code"])
             print("THIS IS THE PATH where we will look for published files")
             print(path)
-            published_files = collect_published_files(path)
+            self.published_files = collect_published_files(path)
     
             self.versions_list.clear()
-    
-            for file in published_files:
-                self.versions_list.addItem(os.path.basename(file))
+            self.published_files_dict = {}
+            
+            if self.published_files:
+
+                for file in self.published_files:
+                    self.versions_list.addItem(file)
+                    #self.versions_list.addItem(os.path.basename(file))
+            else:
+                self.versions_list.addItem("No published files found.")
+
 
     def get_selected_task(self):
         selected_item = self.tasks_list.currentItem()
@@ -773,7 +780,36 @@ class TaskManager(QMainWindow):
                 if selected_task:
                     self.save_task_context(selected_task)
                     launch_blender(self.software_availability["Blender"], selected_task)
-    
+
+        elif self.versions_list.underMouse():
+            menu = QMenu(self)
+            action_open_directory = menu.addAction("File location")
+
+            action = menu.exec(self.mapToGlobal(event.pos()))
+            if action:
+                print(self.versions_list.currentItem())
+            
+
+            if action == action_open_directory:
+                from kitsu_home_pipeline.utils.file_utils import open_file_location
+                print("Opening file location...")
+                selected_version = self.versions_list.currentItem()
+                file_path = self.published_files.get(selected_version.text())
+                if file_path:
+                    open_file_location(file_path)
+    def on_version_selected(self, item):
+        print(f"Selected version: {item.text()}")
+        file_name = item.text()
+        file_path = self.published_files.get(file_name)
+        if file_path:
+            print(f"Full file path: {file_path}")
+        else:
+            print("File not found in path")
+
+        for file in self.published_files:
+            if item.text() == file:
+                print(f"Full file path: {file}")
+
     def view_task_details(self):
         selected_items = self.tasks_list.currentItem()
         if selected_items:

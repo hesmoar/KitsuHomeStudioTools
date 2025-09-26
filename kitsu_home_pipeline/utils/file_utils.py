@@ -300,6 +300,18 @@ def collect_published_files(src_directory):
 
     return published_files
 
+def create_working_file(published_directory, working_directory):
+    #This function should do the following: from the published directory using the get unique filename function it should increase the version number by 1, then copy that file into the working_directory
+    pass
+
+def open_file_location(file_path):
+    if os.path.exists(file_path):
+        folder_path = os.path.dirname(file_path)
+        os.startfile(folder_path)
+    else:
+        print(f"File does not exist: {file_path}")
+
+
 def get_unique_filename(base_name, directory, extension=""):
     """Generate a unique filename with an incremental version number."""
     if not os.path.exists(directory):
