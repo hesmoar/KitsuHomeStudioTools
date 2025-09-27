@@ -317,7 +317,7 @@ class TaskManager(QMainWindow):
 
     def update_ui_with_kitsu(self):
 
-        self.initial_directory_setup(drive_letter='w', root_folder='KitsuProjects')
+        self.initial_directory_setup(drive_letter='x', root_folder='KitsuProjects')
 
         # Main Window
         self.setGeometry(100, 100, 1200, 600)

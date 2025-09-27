@@ -4,6 +4,7 @@ import json
 import logging
 import pprint
 import tkinter as tk
+import fileseq
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton,
     QCheckBox, QRadioButton, QButtonGroup, QFileDialog, QHBoxLayout, QGroupBox, QFrame, QSpacerItem, QSizePolicy, QComboBox, QTextEdit, QToolButton, QMenu, QLineEdit, QMessageBox
@@ -685,7 +686,7 @@ class AgnosticPublisher(QMainWindow):
     def start_process(self):
         """Start process and set selections"""
         from kitsu_home_pipeline.utils.kitsu_utils import create_preview_file, create_working_file, create_output_file, working_file_path#, output_file_path
-        from kitsu_home_pipeline.utils.file_utils import move_working_to_publish, create_entity_directory, create_file_name, get_unique_filename
+        from kitsu_home_pipeline.utils.file_utils import move_working_to_publish, move_preview_to_publish, create_entity_directory, create_file_name, get_unique_filename
         import gazu
         # Get selected files
         working_files = self.working_file_gallery.get_files()
@@ -750,7 +751,7 @@ class AgnosticPublisher(QMainWindow):
         )
         print(f"Starting process with {len(output_files + working_files)} files...")
 
-        root_path = "W:/KitsuProjects"
+        root_path = "X:/KitsuProjects"
 
         publish_path, working_path = create_entity_directory(root_path,
                                                              project_code,
@@ -765,9 +766,13 @@ class AgnosticPublisher(QMainWindow):
         _, extension = os.path.splitext(src_file)
         extension = extension.lstrip(".")
 
+        src_preview_file = self.selections["output_files"][0]
+        _, preview_ext = os.path.splitext(src_preview_file)
+        preview_extension = preview_ext.lstrip(".")
+
+        preview_extension = os.path.splitext(src)
+
         unique_full_path, unique_file_name = get_unique_filename(file_base_name, publish_path, extension)
-
-
 
 
 
@@ -805,8 +810,15 @@ class AgnosticPublisher(QMainWindow):
         )
         
         if files:
+            sequences = fileseq.findSequencesOnDisk(files)
+            sequence_files = set()
+            for seq in sequences:
+                gallery.add_file(str(seq))
+                sequence_files.update(seq.files())
+
             for file_path in files:
-                gallery.add_file(file_path)
+                if file_path not in sequence_files:
+                    gallery.add_file(file_path)
     
     def clear_files(self, gallery):
         """Clear all files from the gallery"""

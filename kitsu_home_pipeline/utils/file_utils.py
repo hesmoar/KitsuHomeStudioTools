@@ -266,6 +266,19 @@ def move_working_to_publish(src_directory, dst_directory):
     else:
         print("File already in publish. Skipping Copy.")
 
+def move_preview_to_publish(src_directory, dst_directory):
+    src = Path(src_directory)
+    dst = Path(dst_directory)
+    
+
+
+    if not dst.exists():
+        print(f"Copying preview to publish: {dst}")
+        shutil.copy2(src, dst)
+        print("Preview file copy succesfull")
+    else:
+        print("Preview file already in publish. Skipping Copy.")
+
 def create_file_name(project_code, entity_name, task_code):
     base_name = f"{project_code}_{entity_name}_{task_code}"
 
