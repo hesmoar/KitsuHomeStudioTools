@@ -270,10 +270,42 @@ def move_preview_to_publish(src_directory, dst_directory):
     src = Path(src_directory)
     dst = Path(dst_directory)
 
+    print(f"Source path: {src}")
+    print(f"Destination path: {dst}")
 
-    if not dst.exists():
-        print(f"Copying preview to publish: {dst}")
-        shutil.copy2(src, dst)
+    _, preview_ext = os.path.splitext(src)
+    preview_extension = preview_ext.lstrip(".")
+
+    print(f"This is the original extension: {preview_extension}")
+
+    filename = os.path.basename(dst)
+    basename = os.path.splitext(filename)[0]
+    print(f"This is the file name: {filename}")
+    print(f"This is the base name: {basename}")
+    new_filename = os.path.join(basename + "." + preview_extension)
+    print(f"This is the new file name: {new_filename}")
+
+    file_version = new_filename.split("_v")[-1].split(".")[0]
+    print(f"This is the file version: {file_version}")
+
+    new_folder_name = f"v{file_version}"
+    print(f"New folder name: {new_folder_name}")
+
+    dst_parent = dst.parent
+    print(f"Destination parent folder: {dst_parent}")
+    version_folder = dst_parent / new_folder_name
+    version_folder.mkdir(parents=True, exist_ok=True)
+
+
+    preview_folder = version_folder / new_filename
+
+    print(f"Preview NEW path: {preview_folder}")
+
+
+
+    if not preview_folder.exists():
+        print(f"Copying preview to publish: {preview_folder}")
+        shutil.copy2(src, preview_folder)
         print("Preview file copy succesfull")
     else:
         print("Preview file already in publish. Skipping Copy.")

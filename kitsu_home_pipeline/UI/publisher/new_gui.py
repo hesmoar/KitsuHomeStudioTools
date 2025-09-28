@@ -784,7 +784,7 @@ class AgnosticPublisher(QMainWindow):
 
         # Move files into publish area
         move_working_to_publish(self.selections["working_files"][0], unique_full_path)
-        move_preview_to_publish(self.selections["output_files"][0], unique_preview_path)
+        move_preview_to_publish(self.selections["output_files"][0], unique_full_path)
 
 
         self.close()
@@ -792,7 +792,6 @@ class AgnosticPublisher(QMainWindow):
         publish_msg = QMessageBox()
         custom_icon = QPixmap(os.path.join(current_dir, "icons", "Published.ico"))
         publish_msg.setIconPixmap(custom_icon)#.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        publish_msg.setIcon(QMessageBox.checkBox)
         publish_msg.setWindowTitle("Publish Complete")
         publish_msg.setText(f"You did it!, Preview is in kitsu and working file moved to {publish_path}")
         publish_msg.setStandardButtons(QMessageBox.Ok)
