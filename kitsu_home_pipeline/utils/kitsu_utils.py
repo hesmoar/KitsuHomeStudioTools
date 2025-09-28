@@ -50,6 +50,16 @@ def get_project_info(project_name=None):
             print(f"Project {project_name} not found.")
             return None
 
+def get_project_framerate(project_name):
+    project = get_project_info(project_name)
+    if project:
+        framerate = project.get("fps", None)
+        print(f"Project framerate: {framerate}")
+        return framerate
+    else:
+        print("Project not found")
+        return None
+
 def get_project_short_name(project):
     project_dict = gazu.project.get_project_by_name(project)
 

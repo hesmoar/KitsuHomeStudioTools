@@ -1,10 +1,21 @@
-from kitsu_home_pipeline.utils.context_from_json import get_context_from_json
+#from kitsu_home_pipeline.utils.context_from_json import get_context_from_json
 from kitsu_home_pipeline.utils.auth import kitsu_auto_login
 import gazu
 from kitsu_home_pipeline.utils.file_utils import get_temp_dir
+from kitsu_home_pipeline.utils.kitsu_utils import get_project_info, get_project_framerate
 
 import os
 
+
+kitsu_auto_login()
+
+project = "AnimaOrquesta_Test"
+
+get_project_info(project)
+
+get_project_framerate(project)
+
+"""
 context_temp_dir = get_temp_dir("KitsuTaskManager/Context")
 context_file_path = os.path.join(context_temp_dir, "Kitsu_task_context.json")
 
@@ -24,3 +35,4 @@ def project_context():
 #project_context()
         #pprint.pprint(project_dict)
 
+"""

@@ -33,8 +33,8 @@ def collect_published_files(src_directory):
     return published_files
 
 
-src_directory = r"X:\KitsuProjects\epic\Publish\Shot\SH999\rnd\epic_SH999_rnd_v005.png"
-dst_directory = r"X:\KitsuProjects\epic\Publish\Shot\sh1000\rnd\epic_SH999_rnd_v003.kra"
+src_directory = r"X:\KitsuProjects\epic\Publish\Shot\SH999\rnd\epic_SH999_rnd_v001.png"
+dst_directory = r"X:\KitsuProjects\epic\Publish\Shot\sh1000\rnd\epic_SH999_rnd_v001.kra"
 
 def move_preview_to_publish(src_directory, dst_directory):
     src = Path(src_directory)
@@ -63,15 +63,19 @@ def move_preview_to_publish(src_directory, dst_directory):
 
     dst_parent = dst.parent
     print(f"Destination parent folder: {dst_parent}")
-    preview_folder = Path(dst_parent, new_folder_name, new_filename)
+    version_folder = dst_parent / new_folder_name
+    version_folder.mkdir(parents=True, exist_ok=True)
+
+
+    preview_folder = version_folder / new_filename
 
     print(f"Preview NEW path: {preview_folder}")
 
 
 
-    if not dst.exists():
+    if not preview_folder.exists():
         print(f"Copying preview to publish: {preview_folder}")
-        #shutil.copy2(src, preview_folder)
+        shutil.copy2(src, preview_folder)
         print("Preview file copy succesfull")
     else:
         print("Preview file already in publish. Skipping Copy.")

@@ -27,7 +27,7 @@ from kitsu_home_pipeline.utils import (
 from kitsu_home_pipeline.utils.auth import connect_to_kitsu, kitsu_auto_login, load_credentials, clear_credentials
 from kitsu_home_pipeline.utils.file_utils import clean_up_temp_files, create_main_directory, collect_published_files
 from kitsu_home_pipeline.UI.publisher.new_gui import run_publisher_gui
-from kitsu_home_pipeline.utils.kitsu_utils import get_project_code, get_user_info
+from kitsu_home_pipeline.utils.kitsu_utils import get_project_code, get_user_info, get_project_framerate
 from kitsu_home_pipeline.UI.task_manager.log_console import LogConsole
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -571,6 +571,7 @@ class TaskManager(QMainWindow):
 
     def on_project_selected(self, item):
         selected_project = item.text()
+        self.project_framerate = get_project_framerate(selected_project)
         entities, self.task_details, entities_type = get_user_tasks_for_project(self.selections["username"], selected_project)
         entity_type_and_name = []
         for i in range(len(entities)):
