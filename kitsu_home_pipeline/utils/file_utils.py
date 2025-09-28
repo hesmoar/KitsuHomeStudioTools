@@ -269,7 +269,6 @@ def move_working_to_publish(src_directory, dst_directory):
 def move_preview_to_publish(src_directory, dst_directory):
     src = Path(src_directory)
     dst = Path(dst_directory)
-    
 
 
     if not dst.exists():

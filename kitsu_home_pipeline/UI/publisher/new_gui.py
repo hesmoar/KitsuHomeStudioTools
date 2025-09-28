@@ -761,28 +761,38 @@ class AgnosticPublisher(QMainWindow):
         print(f"Publish path: {publish_path}")
         print(f"Working path: {working_path}")
 
+        # Preparing working file to move to publish area. 
         file_base_name = create_file_name(project_code, self.entity_name, task_code)
         src_file = self.selections["working_files"][0]
         _, extension = os.path.splitext(src_file)
         extension = extension.lstrip(".")
 
+        # Generate and confirm unique filename in new location.
+        unique_full_path, unique_file_name = get_unique_filename(file_base_name, publish_path, extension)
+
+
+        # Preparing output file to move to publish area
         src_preview_file = self.selections["output_files"][0]
         _, preview_ext = os.path.splitext(src_preview_file)
         preview_extension = preview_ext.lstrip(".")
 
-        preview_extension = os.path.splitext(src)
-
-        unique_full_path, unique_file_name = get_unique_filename(file_base_name, publish_path, extension)
 
 
+        unique_preview_path, unique_preview_file = get_unique_filename(file_base_name, publish_path, preview_extension)
+        print(f"Unique full path: {unique_preview_path} for the file with unique name: {unique_preview_file}")
 
+
+        # Move files into publish area
         move_working_to_publish(self.selections["working_files"][0], unique_full_path)
+        move_preview_to_publish(self.selections["output_files"][0], unique_preview_path)
+
+
         self.close()
 
         publish_msg = QMessageBox()
         custom_icon = QPixmap(os.path.join(current_dir, "icons", "Published.ico"))
-        #publish_msg.setIconPixmap(custom_icon)#.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        #publish_msg.setIcon(QMessageBox.checkBox)
+        publish_msg.setIconPixmap(custom_icon)#.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        publish_msg.setIcon(QMessageBox.checkBox)
         publish_msg.setWindowTitle("Publish Complete")
         publish_msg.setText(f"You did it!, Preview is in kitsu and working file moved to {publish_path}")
         publish_msg.setStandardButtons(QMessageBox.Ok)
@@ -810,11 +820,11 @@ class AgnosticPublisher(QMainWindow):
         )
         
         if files:
-            sequences = fileseq.findSequencesOnDisk(files)
+            sequences = fileseq.findSequencesInList(files)
             sequence_files = set()
             for seq in sequences:
                 gallery.add_file(str(seq))
-                sequence_files.update(seq.files())
+                sequence_files.update(seq.getFiles())
 
             for file_path in files:
                 if file_path not in sequence_files:

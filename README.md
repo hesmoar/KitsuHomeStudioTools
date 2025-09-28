@@ -2,7 +2,8 @@
 
 # Kitsu Home Pipeline Tools
 
-A toolkit for Kitsu pipeline integration with various DCC software.
+A homemade pipeline, basic tools you need to keep your digital assets in order and tracked. 
+Using Kitsu as the main database and project tracking tool, this toolkit gives the user a friendly interface to view, launch and publish his/her tasks. 
 
 ## Installation
 
