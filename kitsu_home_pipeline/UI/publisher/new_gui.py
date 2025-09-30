@@ -687,7 +687,9 @@ class AgnosticPublisher(QMainWindow):
         """Start process and set selections"""
         from kitsu_home_pipeline.utils.kitsu_utils import create_preview_file, create_working_file, create_output_file, working_file_path#, output_file_path
         from kitsu_home_pipeline.utils.file_utils import move_working_to_publish, move_preview_to_publish, create_entity_directory, create_file_name, get_unique_filename
+        from kitsu_home_pipeline.utils.ffmpeg_utils import convert_image_sequence_to_video
         import gazu
+        
         # Get selected files
         working_files = self.working_file_gallery.get_files()
         output_files = self.output_file_gallery.get_files()
@@ -711,18 +713,12 @@ class AgnosticPublisher(QMainWindow):
 
         pprint.pprint(self.selections)
 
-        #selected_project = gazu.project.get_project_by_name(self.selections["project_name"])
-        #sequence = gazu.shot.get_sequence_by_name(selected_project, "0010")
-        #single_shot = gazu.shot.get_shot_by_name(sequence, self.entity_name)
 
         task = gazu.task.get_task(self.selections["task_id"])
-        #task = gazu.task.get_task("86bc6195-1a4f-4767-9846-b911ecb2d30b")
-        #print("ThIS IS A TASK: ")
-        #pprint.pprint(task)
 
+
+        #What I extracted from the task for the new working file function: ")
         task_context_from_name = task
-        #print("What I extracted from the task for the new working file function: ")
-        #pprint.pprint(task_context_from_name)
 
 
         person = gazu.person.get_person_by_email(keyring.get_password("kitsu", "email"))
@@ -743,14 +739,11 @@ class AgnosticPublisher(QMainWindow):
         #)
         #output_file_path(entity)
         #create_output_file()
-        create_preview_file(
-            task_context_from_name,
-            person,
-            description,
-            file_path
-        )
+        
+        
         print(f"Starting process with {len(output_files + working_files)} files...")
 
+        # This root path should come from a different variable instead of being hardcoded
         root_path = "X:/KitsuProjects"
 
         publish_path, working_path = create_entity_directory(root_path,
@@ -778,25 +771,49 @@ class AgnosticPublisher(QMainWindow):
 
 
 
+
+
         unique_preview_path, unique_preview_file = get_unique_filename(file_base_name, publish_path, preview_extension)
         print(f"Unique full path: {unique_preview_path} for the file with unique name: {unique_preview_file}")
+        
+        print("--- DEBUG INFO ---")
+        #print(f"fileseq Library Version: {fileseq.__version__}")
+        print(f"Object Type: {type(seq)}")
+        print(f"Available Attributes: {dir(seq)}")
+        print("--------------------")
+        for file_path in output_files:
+            seq = fileseq.FileSequence(file_path)
+            if len(seq) > 1:
 
+                ffmpeg_pattern = f"{seq.head()}%0{seq.zfill()}d{seq.tail()}"
+                input_pattern = str(seq)
+                input_pattern = input_pattern.replace("%04d", "#")
+                output_video_path = unique_preview_path.replace(f".{preview_extension}", ".mp4")
+                frame_rate = 24 # This should also come from the context of kitsu and not be hardcoded
+                print(f"Converting image sequence {ffmpeg_pattern} to video {output_video_path}")
+                #convert_image_sequence_to_video(input_pattern, output_video_path, frame_rate)
+
+        #create_preview_file(
+        #    task_context_from_name,
+        #    person,
+        #    description,
+        #    file_path
+        #)
 
         # Move files into publish area
-        move_working_to_publish(self.selections["working_files"][0], unique_full_path)
-        move_preview_to_publish(self.selections["output_files"][0], unique_full_path)
+        #move_working_to_publish(self.selections["working_files"][0], unique_full_path)
+        #move_preview_to_publish(self.selections["output_files"][0], unique_full_path)
 
 
         self.close()
 
         publish_msg = QMessageBox()
         custom_icon = QPixmap(os.path.join(current_dir, "icons", "Published.ico"))
-        publish_msg.setIconPixmap(custom_icon)#.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        publish_msg.setIconPixmap(custom_icon.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         publish_msg.setWindowTitle("Publish Complete")
         publish_msg.setText(f"You did it!, Preview is in kitsu and working file moved to {publish_path}")
         publish_msg.setStandardButtons(QMessageBox.Ok)
         publish_msg.exec()
-        #QMessageBox.information(self, "Publish complete", f"Files have been published to kitsu and moved to {publish_path}")
 
     def cancel_and_exit(self):
         """Cancel and exit the application"""
@@ -810,28 +827,27 @@ class AgnosticPublisher(QMainWindow):
         self.close()
     
     def browse_files(self, gallery):
-        """Browse and select files to publish"""
+        """Browse and select files to publish (Simplified)"""
         files, _ = QFileDialog.getOpenFileNames(
             self,
             "Select Files to Publish",
             "",
             "All Files (*.*)"
         )
-        
-        if files:
-            sequences = fileseq.findSequencesInList(files)
-            sequence_files = set()
-            for seq in sequences:
-                gallery.add_file(str(seq))
-                sequence_files.update(seq.getFiles())
+        if not files:
+            return
 
-            for file_path in files:
-                if file_path not in sequence_files:
-                    gallery.add_file(file_path)
-    
-    def clear_files(self, gallery):
-        """Clear all files from the gallery"""
-        gallery.clear_files()
+        # findSequencesInList handles both sequences and single files
+        sequences = fileseq.findSequencesInList(files)
+
+        for item in sequences:
+            # 'item' is a FileSequence object, whether it's one file or many.
+            # str(item) will format it nicely, e.g., "image.1-10@.exr" or "report.pdf"
+            gallery.add_file(str(item))
+
+        def clear_files(self, gallery):
+            """Clear all files from the gallery"""
+            gallery.clear_files()
     
     def on_comment_changed(self, comment):
         """Handle comment changes"""
