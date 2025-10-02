@@ -1,4 +1,5 @@
 import os
+import re
 import tempfile
 import json
 import shutil
@@ -344,19 +345,24 @@ def collect_published_files(src_directory):
 
     return published_files
 
-def create_working_file(published_directory, working_directory):
+def create_working_from_publish(published_file_path, working_directory):
     #This function should do the following: from the published directory using the get unique filename function it should increase the version number by 1, then copy that file into the working_directory
     #published_directory = Path(published_directory)
-    directory = os.path.dirname(published_directory)
-    base_name = os.path.basename(published_directory).split(".")[0]
-    extension = os.path.splitext(published_directory)[1].lstrip(".")
+    publish_dir = os.path.dirname(published_file_path)
+    full_filename = os.path.basename(published_file_path).split(".")[0]
+    base_name, extension = os.path.splitext(full_filename)
+    clean_basename = re.split(r'_v\d{3}$', base_name)[0]
+    #extension = extension.lstrip(".")
     print("This is the published file information: ")
-    print(extension)
-    print(base_name)
-    print(directory)
-    new_path, new_filename = get_unique_filename(base_name, directory, extension)
+    print(f"Full file name: {full_filename}")
+    print(f"Extension: {extension}")
+    print(f"base_name: {base_name}")
+    _, new_filename = get_unique_filename(clean_basename, publish_dir, extension)
 
-    print(new_path)
+    source_file = published_file_path
+    destination_path = os.path.join(working_directory, new_filename)
+    
+    print(f"Creating working file: {destination_path} from publish: {source_file} ")
 
     #if new_path:
     #    print(f"Creating working file:{new_filename} at {new_path}")

@@ -804,7 +804,7 @@ class TaskManager(QMainWindow):
                     open_file_location(file_path)
 
             elif action == action_create_working:
-                from kitsu_home_pipeline.utils.file_utils import create_working_file
+                from kitsu_home_pipeline.utils.file_utils import create_working_from_publish
                 print("Creating working file from publish...")
 
                 working_directory = r"W:\KitsuProjects\epic\Working\Shot"
@@ -816,7 +816,7 @@ class TaskManager(QMainWindow):
                 #print(f"This is the file extension: {extension}")
 
                 
-                create_working_file(file_path, working_directory)
+                create_working_from_publish(file_path, working_directory)
 
 
     def on_version_selected(self, item):
