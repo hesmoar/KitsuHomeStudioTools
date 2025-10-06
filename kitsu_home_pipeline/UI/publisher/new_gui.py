@@ -5,6 +5,7 @@ import logging
 import pprint
 import tkinter as tk
 import fileseq
+from kitsu_home_pipeline.utils.helpers import resource_path
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton,
     QCheckBox, QRadioButton, QButtonGroup, QFileDialog, QHBoxLayout, QGroupBox, QFrame, QSpacerItem, QSizePolicy, QComboBox, QTextEdit, QToolButton, QMenu, QLineEdit, QMessageBox
@@ -790,7 +791,8 @@ class AgnosticPublisher(QMainWindow):
         self.close()
 
         publish_msg = QMessageBox()
-        custom_icon = QPixmap(os.path.join(current_dir, "icons", "Published.ico"))
+        custom_icon_path = resource_path("icons/Published.ico")
+        custom_icon = QPixmap(custom_icon_path)
         publish_msg.setIconPixmap(custom_icon)#.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         publish_msg.setWindowTitle("Publish Complete")
         publish_msg.setText(f"You did it!, Preview is in kitsu and working file moved to {publish_path}")

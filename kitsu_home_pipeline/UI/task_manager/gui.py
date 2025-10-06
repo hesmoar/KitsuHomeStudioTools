@@ -6,6 +6,7 @@ import json
 import logging
 import pprint
 from datetime import datetime
+from kitsu_home_pipeline.utils.helpers import resource_path
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton,
     QCheckBox, QRadioButton, QButtonGroup, QFileDialog, QHBoxLayout, QGroupBox, 
@@ -62,7 +63,8 @@ class TaskManager(QMainWindow):
         super().__init__()
         self.setWindowTitle("Kitsu Task Manager")
 
-        icon_path = os.path.join(current_dir, "icons", "KitsuTaskManagerIcon.ico")
+        #icon_path = os.path.join(current_dir, "icons", "KitsuTaskManagerIcon.ico")
+        icon_path = resource_path("icons/KitsuTaskManagerIcon.ico")
         self.setWindowIcon(QIcon(icon_path))
         self.setGeometry(50, 50, 400, 300)
 
@@ -680,12 +682,16 @@ class TaskManager(QMainWindow):
             menu = QMenu(self)
 
             action_publish = menu.addAction("Publish")
-            action_publish.setIcon(QIcon(os.path.join(current_dir, "icons", "KitsuPublisherIcon.ico")))
+            pub_icon_path = resource_path("icons/KitsuPublisherIcon.ico")
+            action_publish.setIcon(QIcon(pub_icon_path))
+            #action_publish.setIcon(QIcon(os.path.join(current_dir, "icons", "KitsuPublisherIcon.ico")))
 
             action_view_details = menu.addAction("View Details")
 
             action_launch_software = menu.addMenu("Launch Software")
-            action_launch_software.setIcon(QIcon(os.path.join(current_dir, "icons", "PhotoIcon.ico")))
+            launch_icon_path = resource_path("icons/PhotoIcon.ico")
+            action_launch_software.setIcon(QIcon(launch_icon_path))
+            #action_launch_software.setIcon(QIcon(os.path.join(current_dir, "icons", "PhotoIcon.ico")))
             
             action_launch_resolve = None
             action_launch_krita = None
@@ -695,23 +701,33 @@ class TaskManager(QMainWindow):
 
             if self.software_availability.get("Storyboarder"):
                 action_launch_storyboarder = action_launch_software.addAction("Launch Storyboarder")
-                action_launch_storyboarder.setIcon(QIcon(os.path.join(current_dir, "icons", "StoryborderLogo.ico")))
+                lnch_strb_icon_path = resource_path("icons/StoryborderLogo.ico")
+                action_launch_storyboarder.setIcon(QIcon(lnch_strb_icon_path))
+                #action_launch_storyboarder.setIcon(QIcon(os.path.join(current_dir, "icons", "StoryborderLogo.ico")))
 
             if self.software_availability.get("Krita"):
                 action_launch_krita = action_launch_software.addAction("Launch Krita")
-                action_launch_krita.setIcon(QIcon(os.path.join(current_dir, "icons", "kritaicon.ico")))
+                lnch_krita_icon_path = resource_path("icons/kritaicon.ico")
+                action_launch_storyboarder.setIcon(QIcon(lnch_krita_icon_path))
+                #action_launch_krita.setIcon(QIcon(os.path.join(current_dir, "icons", "kritaicon.ico")))
 
             if self.software_availability.get("Resolve"):
                 action_launch_resolve = action_launch_software.addAction("Launch Resolve")
-                action_launch_resolve.setIcon(QIcon(os.path.join(current_dir, "icons", "DaVinci_Resolve_Icon.ico")))
+                lnch_Dvinci_icon_path = resource_path("icons/DaVinci_Resolve_Icon.ico")
+                action_launch_storyboarder.setIcon(QIcon(lnch_Dvinci_icon_path))
+                #action_launch_resolve.setIcon(QIcon(os.path.join(current_dir, "icons", "DaVinci_Resolve_Icon.ico")))
             
             if self.software_availability.get("Blender"):
                 action_launch_blender = action_launch_software.addAction("Launch Blender")
-                action_launch_blender.setIcon(QIcon(os.path.join(current_dir, "icons", "Blender_Logo.ico")))
+                lnch_blender_icon_path = resource_path("icons/Blender_Logo.ico")
+                action_launch_storyboarder.setIcon(QIcon(lnch_blender_icon_path))
+                #action_launch_blender.setIcon(QIcon(os.path.join(current_dir, "icons", "Blender_Logo.ico")))
 
             if self.software_availability.get("Nuke"):
                 action_launch_nuke = action_launch_software.addAction("Launch Nuke")
-                action_launch_nuke.setIcon(QIcon(os.path.join(current_dir, "icons", "NukeIcon.ico")))
+                lnch_nuke_icon_path = resource_path("icons/NukeIcon.ico")
+                action_launch_storyboarder.setIcon(QIcon(lnch_nuke_icon_path))
+                #action_launch_nuke.setIcon(QIcon(os.path.join(current_dir, "icons", "NukeIcon.ico")))
                 action_launch_nuke.setEnabled(True)
             action_launch_software.addSeparator()
 
@@ -793,7 +809,7 @@ class TaskManager(QMainWindow):
             
             selected_version = self.versions_list.currentItem()
             file_path = self.published_files.get(selected_version.text())
-            print(f"THIS IS THE FILE PATH VALUE: {file_path}")
+            #print(f"THIS IS THE FILE PATH VALUE: {file_path}")
 
             if action == action_open_directory:
                 from kitsu_home_pipeline.utils.file_utils import open_file_location
@@ -807,7 +823,7 @@ class TaskManager(QMainWindow):
                 from kitsu_home_pipeline.utils.file_utils import create_working_from_publish
                 print("Creating working file from publish...")
 
-                working_directory = r"W:\KitsuProjects\epic\Working\Shot"
+                
                 #basename = os.path.basename(file_path).split(".")[0]
                 #directory = os.path.dirname(file_path)
                 #extension = os.path.splitext(file_path)[1].lstrip(".")
@@ -816,7 +832,7 @@ class TaskManager(QMainWindow):
                 #print(f"This is the file extension: {extension}")
 
                 
-                create_working_from_publish(file_path, working_directory)
+                create_working_from_publish(file_path)
 
 
     def on_version_selected(self, item):
@@ -959,8 +975,9 @@ def on_login_success(self):
 def run_gui():
     print("Welcome to the most amazing task manager ever!")
     print("............")
+    app_icon_path = resource_path("icons/KitsuIcon.ico")
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(os.path.join(current_dir, "icons", "KitsuIcon.ico")))
+    app.setWindowIcon(QIcon(app_icon_path))
     app.setFont(QFont("Segoe UI", 10))
     window = TaskManager()
     window.show()
