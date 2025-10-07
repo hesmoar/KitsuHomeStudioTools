@@ -344,43 +344,7 @@ def collect_published_files(src_directory):
         print(f"{name}: {path}")
 
     return published_files
-"""
-def create_working_from_publish(published_file_path, working_directory):
-    #This function should do the following: from the published directory using the get unique filename function it should increase the version number by 1, then copy that file into the working_directory
-    #published_directory = Path(published_directory)
-    publish_dir = os.path.dirname(published_file_path)
-    print(f"This is the publish dir: {publish_dir}")
-    full_filename = os.path.basename(published_file_path).split(".")[0]
-    full_filename = Path(published_file_path)
-    base_name, extension = os.path.splitext(full_filename)
-    #_, extension_with = os.path.splitext(full_filename)
-    extension = extension.lstrip(".")
-    clean_basename = re.split(r'_v\d{3}$', base_name)[0]
-    #extension = re.split(r'_v\d{3}$', base_name)[1]
-    #extension = extension.lstrip(".")
-    print("This is the published file information: ")
-    print(f"Full file name: {full_filename}")
-    print(f"Extension: {extension}")
-    print(f"base_name: {base_name}")
-    _, new_filename = get_unique_filename(clean_basename, publish_dir, extension)
-    print(f"This is the filename after unique_filename function: {new_filename}")
 
-    source_file = published_file_path
-    destination_path = os.path.join(working_directory, new_filename)
-    
-    print(f"Creating working file: {destination_path} from publish: {source_file} ")
-
-    #if new_path:
-    #    print(f"Creating working file:{new_filename} at {new_path}")
-
-def open_file_location(file_path):
-    if os.path.exists(file_path):
-        folder_path = os.path.dirname(file_path)
-        os.startfile(folder_path)
-    else:
-        print(f"File does not exist: {file_path}")
-
-"""
 
 def get_working_directory_from_publish_path(published_file_path):
     working_path_with_filename = published_file_path.replace("\\Publish\\", "\\Working\\").replace("/Publish/", "/Working/")
@@ -388,6 +352,24 @@ def get_working_directory_from_publish_path(published_file_path):
     working_directory = os.path.dirname(working_path_with_filename)
 
     return working_directory
+
+def get_next_available_version(base_name, directory, extension, initial_version):
+    extension_with_dot = f".{extension}" if extension else ""
+
+    existing_versions = []
+
+    for filename in os.listdir(directory):
+        if filename.startswith(base_name) and filename.endswith(extension_with_dot):
+            version_match = re.search(r'_v(\d{3})' + re.escape(extension_with_dot) + r'$', filename)
+            if version_match:
+                version = int(version_match.group(1))
+                existing_versions.append(version)
+    
+    max_existing_version = max(existing_versions, default=0)
+
+    safe_version = max(max_existing_version, initial_version) + 1
+
+    return safe_version
 
 def create_working_from_publish(published_file_path):
 
@@ -398,12 +380,12 @@ def create_working_from_publish(published_file_path):
     
     # --- 1. Extract Name, Extension, and Version from Published Path ---
     full_filename = Path(published_file_path).name
-    base_name, extension_with_dot = os.path.splitext(full_filename)
+    base_name_with_version, extension_with_dot = os.path.splitext(full_filename)
     extension = extension_with_dot.lstrip(".")
 
     # Regular expression to find and capture the base name and the version number
     # Assumes the format is 'basename_vXXX.ext'
-    match = re.search(r'(.+?)_v(\d{3})$', base_name)
+    match = re.search(r'(.+?)_v(\d{3})$', base_name_with_version)
 
     if not match:
         print(f"Error: Published file name '{full_filename}' does not follow the expected '_vXXX' versioning format.")
@@ -412,14 +394,17 @@ def create_working_from_publish(published_file_path):
 
     clean_basename = match.group(1) # e.g., 'my_asset'
     current_version = int(match.group(2)) # e.g., 1
-    
-    # --- 2. Calculate New Version Number and Filename ---
-    new_version = current_version + 1
-    
-    # Construct the new filename with the incremented version
-    new_filename = f"{clean_basename}_v{new_version:03d}{extension_with_dot}"
 
-    # --- 3. Construct Destination Path and Copy the File ---
+    final_version = get_next_available_version(
+        clean_basename,
+        working_directory,
+        extension,
+        current_version
+    )
+
+    new_filename = f"{clean_basename}_v{final_version:03d}{extension_with_dot}"
+    
+  
     source_file = published_file_path
     destination_path = os.path.join(working_directory, new_filename)
     
@@ -431,6 +416,7 @@ def create_working_from_publish(published_file_path):
     try:
         shutil.copy2(source_file, destination_path) # copy2 preserves metadata
         print(f"Successfully created working file at: {destination_path}")
+        return destination_path
     except FileNotFoundError:
         print(f"Error: Source file not found at {source_file}")
     except Exception as e:
@@ -456,4 +442,10 @@ def get_unique_filename(base_name, directory, extension=""):
     print(f"This is the full file path CHECK NOW!: {full_file_path}")
     return os.path.join(directory, filename), filename
 
+def open_file_location(file_path):
+    if os.path.exists(file_path):
+        folder_path = os.path.dirname(file_path)
+        os.startfile(folder_path)
+    else:
+        print(f"File does not exist: {file_path}")
       

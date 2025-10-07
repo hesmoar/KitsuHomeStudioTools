@@ -458,15 +458,15 @@ class TaskManager(QMainWindow):
         # Left Column (Second level)
         second_right_column = QVBoxLayout()
 
-        versions_group = QGroupBox("Versions")
+        versions_group = QGroupBox("Published Versions")
         versions_layout = QVBoxLayout(versions_group)
 
-        self.versions_label = QLabel("Versions")
+        self.versions_label = QLabel("Published Versions")
         self.versions_label.setAlignment(Qt.AlignCenter)
         versions_layout.addWidget(self.versions_label)
 
         self.versions_list = QListWidget(self)
-        self.versions_list.addItems(["Versions"])
+        self.versions_list.addItems(["Published Versions"])
         self.versions_list.itemClicked.connect(self.on_version_selected)
         versions_layout.addWidget(self.versions_list)
 
@@ -688,48 +688,48 @@ class TaskManager(QMainWindow):
 
             action_view_details = menu.addAction("View Details")
 
-            action_launch_software = menu.addMenu("Launch Software")
-            launch_icon_path = resource_path("icons/PhotoIcon.ico")
-            action_launch_software.setIcon(QIcon(launch_icon_path))
+            #action_launch_software = menu.addMenu("Launch Software")
+            #launch_icon_path = resource_path("icons/PhotoIcon.ico")
+            #action_launch_software.setIcon(QIcon(launch_icon_path))
             #action_launch_software.setIcon(QIcon(os.path.join(current_dir, "icons", "PhotoIcon.ico")))
             
-            action_launch_resolve = None
-            action_launch_krita = None
-            action_launch_nuke = None
-            action_launch_storyboarder = None
-            action_launch_blender = None
-
-            if self.software_availability.get("Storyboarder"):
-                action_launch_storyboarder = action_launch_software.addAction("Launch Storyboarder")
-                lnch_strb_icon_path = resource_path("icons/StoryborderLogo.ico")
-                action_launch_storyboarder.setIcon(QIcon(lnch_strb_icon_path))
-                #action_launch_storyboarder.setIcon(QIcon(os.path.join(current_dir, "icons", "StoryborderLogo.ico")))
-
-            if self.software_availability.get("Krita"):
-                action_launch_krita = action_launch_software.addAction("Launch Krita")
-                lnch_krita_icon_path = resource_path("icons/kritaicon.ico")
-                action_launch_storyboarder.setIcon(QIcon(lnch_krita_icon_path))
-                #action_launch_krita.setIcon(QIcon(os.path.join(current_dir, "icons", "kritaicon.ico")))
-
-            if self.software_availability.get("Resolve"):
-                action_launch_resolve = action_launch_software.addAction("Launch Resolve")
-                lnch_Dvinci_icon_path = resource_path("icons/DaVinci_Resolve_Icon.ico")
-                action_launch_storyboarder.setIcon(QIcon(lnch_Dvinci_icon_path))
-                #action_launch_resolve.setIcon(QIcon(os.path.join(current_dir, "icons", "DaVinci_Resolve_Icon.ico")))
-            
-            if self.software_availability.get("Blender"):
-                action_launch_blender = action_launch_software.addAction("Launch Blender")
-                lnch_blender_icon_path = resource_path("icons/Blender_Logo.ico")
-                action_launch_storyboarder.setIcon(QIcon(lnch_blender_icon_path))
-                #action_launch_blender.setIcon(QIcon(os.path.join(current_dir, "icons", "Blender_Logo.ico")))
-
-            if self.software_availability.get("Nuke"):
-                action_launch_nuke = action_launch_software.addAction("Launch Nuke")
-                lnch_nuke_icon_path = resource_path("icons/NukeIcon.ico")
-                action_launch_storyboarder.setIcon(QIcon(lnch_nuke_icon_path))
-                #action_launch_nuke.setIcon(QIcon(os.path.join(current_dir, "icons", "NukeIcon.ico")))
-                action_launch_nuke.setEnabled(True)
-            action_launch_software.addSeparator()
+            #action_launch_resolve = None
+            #action_launch_krita = None
+            #action_launch_nuke = None
+            #action_launch_storyboarder = None
+            #action_launch_blender = None
+#
+            #if self.software_availability.get("Storyboarder"):
+            #    action_launch_storyboarder = action_launch_software.addAction("Launch Storyboarder")
+            #    lnch_strb_icon_path = resource_path("icons/StoryborderLogo.ico")
+            #    action_launch_storyboarder.setIcon(QIcon(lnch_strb_icon_path))
+            #    #action_launch_storyboarder.setIcon(QIcon(os.path.join(current_dir, "icons", "StoryborderLogo.ico")))
+#
+            #if self.software_availability.get("Krita"):
+            #    action_launch_krita = action_launch_software.addAction("Launch Krita")
+            #    lnch_krita_icon_path = resource_path("icons/kritaicon.ico")
+            #    action_launch_storyboarder.setIcon(QIcon(lnch_krita_icon_path))
+            #    #action_launch_krita.setIcon(QIcon(os.path.join(current_dir, "icons", "kritaicon.ico")))
+#
+            #if self.software_availability.get("Resolve"):
+            #    action_launch_resolve = action_launch_software.addAction("Launch Resolve")
+            #    lnch_Dvinci_icon_path = resource_path("icons/DaVinci_Resolve_Icon.ico")
+            #    action_launch_storyboarder.setIcon(QIcon(lnch_Dvinci_icon_path))
+            #    #action_launch_resolve.setIcon(QIcon(os.path.join(current_dir, "icons", "DaVinci_Resolve_Icon.ico")))
+            #
+            #if self.software_availability.get("Blender"):
+            #    action_launch_blender = action_launch_software.addAction("Launch Blender")
+            #    lnch_blender_icon_path = resource_path("icons/Blender_Logo.ico")
+            #    action_launch_storyboarder.setIcon(QIcon(lnch_blender_icon_path))
+            #    #action_launch_blender.setIcon(QIcon(os.path.join(current_dir, "icons", "Blender_Logo.ico")))
+#
+            #if self.software_availability.get("Nuke"):
+            #    action_launch_nuke = action_launch_software.addAction("Launch Nuke")
+            #    lnch_nuke_icon_path = resource_path("icons/NukeIcon.ico")
+            #    action_launch_storyboarder.setIcon(QIcon(lnch_nuke_icon_path))
+            #    #action_launch_nuke.setIcon(QIcon(os.path.join(current_dir, "icons", "NukeIcon.ico")))
+            #    action_launch_nuke.setEnabled(True)
+            #action_launch_software.addSeparator()
 
             #action_launch_resolve.setEnabled(self.software_availability.get("Resolve") is not None)
             #action_launch_krita.setEnabled(self.software_availability.get("Krita") is not None)
@@ -820,7 +820,7 @@ class TaskManager(QMainWindow):
                     open_file_location(file_path)
 
             elif action == action_create_working:
-                from kitsu_home_pipeline.utils.file_utils import create_working_from_publish
+                from kitsu_home_pipeline.utils.file_utils import create_working_from_publish, open_file_location
                 print("Creating working file from publish...")
 
                 
@@ -832,7 +832,17 @@ class TaskManager(QMainWindow):
                 #print(f"This is the file extension: {extension}")
 
                 
-                create_working_from_publish(file_path)
+                working_file_path = create_working_from_publish(file_path)
+                wrkn_file_msg = QMessageBox()
+                custom_icon_path = resource_path("icons/Published.ico")
+                custom_icon = QPixmap(custom_icon_path)
+                wrkn_file_msg.setIconPixmap(custom_icon.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                wrkn_file_msg.setWindowTitle("Working file created")
+                wrkn_file_msg.setText(f"You did it!, Working file has been created at: {working_file_path} from the publish file")
+                wrkn_file_msg.setStandardButtons(QMessageBox.Ok)
+                wrkn_file_msg.exec()
+
+                open_file_location(working_file_path)
 
 
     def on_version_selected(self, item):
