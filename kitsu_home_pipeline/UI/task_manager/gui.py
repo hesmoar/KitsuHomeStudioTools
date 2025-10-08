@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QTabWidget, QTableWidget, QTableWidgetItem, QHeaderView, QFormLayout, QGridLayout, 
     QMessageBox, QListWidget, QListWidgetItem, QMenu, QToolButton, QSizeGrip
 )
+#from Qt5 import QtWidgets, QtCore, QtGui
 from PySide6.QtGui import QIcon, QPixmap, QFont, QColor, QPalette
 from PySide6.QtCore import Qt, QSize, QThread, Signal
 from kitsu_home_pipeline.utils import (
@@ -313,6 +314,14 @@ class TaskManager(QMainWindow):
         
         self.setGeometry(50, 50, 400, 300)
         self.show_login_screen()
+
+    def restart_app(self):
+        clear_credentials()
+        self.selections = {}
+        clean_up_temp_files()
+
+        QtWidgets.qApp.quit()
+        os.execl(sys.executable, sys.executable, *sys.argv)
     
     def unpack_projects(self):
         project_names, project_dict = get_user_projects()
