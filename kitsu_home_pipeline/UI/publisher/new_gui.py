@@ -3,7 +3,7 @@ import sys
 import json
 import logging
 import pprint
-import tkinter as tk
+#import tkinter as tk
 import fileseq
 from kitsu_home_pipeline.utils.helpers import resource_path
 from PySide6.QtWidgets import (
