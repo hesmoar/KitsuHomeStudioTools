@@ -750,7 +750,8 @@ class TaskManager(QMainWindow):
                 return
 
             if action == action_view_details:
-                self.view_task_details()
+                pass
+                #self.view_task_details()
 
             elif action == action_publish:
                 from kitsu_home_pipeline.UI.publisher.new_gui import AgnosticPublisher
@@ -868,7 +869,20 @@ class TaskManager(QMainWindow):
                 print(f"Full file path: {file}")
 
     def view_task_details(self):
+        #TODO: Fix this so it gets the details of the entity and project and opens the webbrowser in that entity
         selected_items = self.tasks_list.currentItem()
+        try:
+            kitsu_url = self.selections.get("kitsu_url", "").rstrip("/api")
+            project_id = selected_items.data(Qt.UserRole).get("project_id")
+            #shot_id = 
+            my_tasks_url = f"{kitsu_url}/my-tasks"
+
+            print(project_id)
+            #print(my_tasks_url)
+            #webbrowser.open(my_tasks_url)
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Failed to open profile: {str(e)}")
+            return
         if selected_items:
             selected_task = selected_items[0].text()
             QMessageBox.information(self, "Task Details", f"Details for task: {selected_task}")

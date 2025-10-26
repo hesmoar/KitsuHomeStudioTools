@@ -53,11 +53,9 @@ def connect_to_kitsu(kitsu_url, kitsu_email, kitsu_password):
     else:
         raise Exception("Kitsu Login failed!")
     
+    
 def kitsu_auto_login():
-    prefix = "http://"
-    sufix = "/api"
-    simple_url = keyring.get_password("kitsu", "url")
-    url = prefix + simple_url + sufix
+    url = keyring.get_password("kitsu", "url")
     email = keyring.get_password("kitsu", "email")
     password = keyring.get_password("kitsu", "password")
     gazu.client.set_host(url)
