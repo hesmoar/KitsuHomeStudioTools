@@ -686,8 +686,10 @@ class AgnosticPublisher(QMainWindow):
     
     def start_process(self):
         """Start process and set selections"""
-        from kitsu_home_pipeline.utils.kitsu_utils import create_preview_file, create_working_file, create_output_file, working_file_path#, output_file_path
-        from kitsu_home_pipeline.utils.file_utils import move_working_to_publish, move_preview_to_publish, create_entity_directory, create_file_name, get_unique_filename
+        from kitsu_home_pipeline.utils.kitsu_utils import find_task_preview_files, updating_preview_data, create_preview_file, create_working_file, create_output_file, working_file_path#, output_file_path
+        from kitsu_home_pipeline.utils.file_utils import collect_published_files, get_max_version_file, move_working_to_publish, move_preview_to_publish, create_entity_directory, create_file_name, get_unique_filename
+        from kitsu_home_pipeline.utils.helpers import compare_version_values
+        import re
         import gazu
         # Get selected files
         working_files = self.working_file_gallery.get_files()
@@ -744,12 +746,6 @@ class AgnosticPublisher(QMainWindow):
         #)
         #output_file_path(entity)
         #create_output_file()
-        create_preview_file(
-            task_context_from_name,
-            person,
-            description,
-            file_path
-        )
         print(f"Starting process with {len(output_files + working_files)} files...")
 
         root_path = "X:/KitsuProjects"
@@ -783,9 +779,42 @@ class AgnosticPublisher(QMainWindow):
         print(f"Unique full path: {unique_preview_path} for the file with unique name: {unique_preview_file}")
 
 
+        # In this section we check the values of the local published files and find the max value version
+        print("Attempting to get the max version number in the local published files.")
+        published_files_path, published_file_name = os.path.split(unique_full_path)  
+        local_published_files_dict = collect_published_files(published_files_path)
+        local_max_file, local_max_version = get_max_version_file(local_published_files_dict)
+
+        #In this section we check the values of the kitsu previews revision field and find the highest value 
+        kitsu_preview_files = find_task_preview_files(task_context_from_name)
+        highest_preview_revision = max(kitsu_preview_files, key=lambda k: kitsu_preview_files[k]['revision'])
+        highest_revision_value = kitsu_preview_files[highest_preview_revision]['revision']
+
+        #In this section we compare both local published file, and kitsu revision value and come up with a new correct and matching value
+        working_version_number, kitsu_version_number = compare_version_values(local_max_version, highest_revision_value)
+
+        #In this section we replace the version number with the newly found correct and matching number
+        new_version_number = f"{working_version_number:03d}"
+        new_unique_full_path = re.sub(r"_v\d{3}", f"_v{new_version_number}", unique_full_path)
+
         # Move files into publish area
-        move_working_to_publish(self.selections["working_files"][0], unique_full_path)
-        move_preview_to_publish(self.selections["output_files"][0], unique_full_path)
+        move_working_to_publish(self.selections["working_files"][0], new_unique_full_path)
+        preview_new_path = move_preview_to_publish(self.selections["output_files"][0], new_unique_full_path)
+
+        #Lets upload to Kitsu now
+        preview_file_created = create_preview_file(
+            task_context_from_name,
+            person,
+            description,
+            preview_new_path
+        )
+        preview_new_data = {
+            "revision": 13
+        }
+        
+        # Updating the revision number to match 
+        #TODO: We need to find the latest preview file and get the revision value, compare with the preview and working file and make sure all three are matching
+        #updating_preview_data(preview_file_created, preview_new_data)
 
 
         self.close()

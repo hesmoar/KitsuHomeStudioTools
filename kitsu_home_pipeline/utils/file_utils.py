@@ -310,6 +310,8 @@ def move_preview_to_publish(src_directory, dst_directory):
         print("Preview file copy succesfull")
     else:
         print("Preview file already in publish. Skipping Copy.")
+    
+    return preview_folder
 
 def create_file_name(project_code, entity_name, task_code):
     base_name = f"{project_code}_{entity_name}_{task_code}"
@@ -344,6 +346,26 @@ def collect_published_files(src_directory):
         print(f"{name}: {path}")
 
     return published_files
+
+def get_max_version_file(file_dict):
+    max_version = -1
+    max_file = None
+    version_pattern = re.compile(r'_v(\d{3})')
+
+    for filename, filepath in file_dict.items():
+        match = version_pattern.search(filename)
+        if match:
+            version = int(match.group(1))
+            if version > max_version:
+                max_version = version
+                max_file = filepath
+
+    if max_file:
+        print(f"Max version file: {max_file} with version {max_version}")
+    else:
+        print("No versioned files found.")
+
+    return max_file, max_version
 
 
 def get_working_directory_from_publish_path(published_file_path):

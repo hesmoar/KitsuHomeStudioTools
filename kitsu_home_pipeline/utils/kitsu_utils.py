@@ -257,6 +257,11 @@ def working_file_path(task_context, software):
 def create_output_file():
     print("Creating an output file YAY YAY!")
 
+def updating_preview_data(preview_id, data):
+    new_preview_data = gazu.files.update_preview(preview_id, data)
+    print("This is the updated preview data: ")
+    pprint.pprint(new_preview_data)
+
 def create_preview_file(task_context, person, comment, file_path):
     print("Creating a preview file YAY YAY YAY")
     pnd_status = get_review_status()
@@ -284,6 +289,8 @@ def create_preview_file(task_context, person, comment, file_path):
     )
     print("This is the preview published and its data: ")
     pprint.pprint(publish_preview)
+    publish_preview_id = publish_preview[1].get("id")
+    return publish_preview_id
 
 def publish_new_version():
     """This function should call all 3 previous functions, publishing the working file,
@@ -305,6 +312,23 @@ For the context needed from the task manager we need the following info:
 - Shot ID
 
 """
+
+def find_task_preview_files(task_id):
+    all_task_previews_dict = gazu.files.get_all_preview_files_for_task(task_id)
+    simplified_task_previews = {}
+    for preview_in_task in all_task_previews_dict:
+        preview_id = preview_in_task.get("id")
+        revision = preview_in_task.get("revision")
+        original_name = preview_in_task.get("original_name")
+
+        simplified_task_previews [original_name] = {
+            "revision": revision,
+            "id": preview_id
+        }
+    
+    print("These are the previews and their name, revision and ID")
+    pprint.pprint(simplified_task_previews)
+    return simplified_task_previews
 
 if __name__ == "__main__":
     create_preview_file()
