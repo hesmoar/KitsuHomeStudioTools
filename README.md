@@ -53,6 +53,13 @@ cd KitsuHomeStudioTools
 ---
 
 ## Roadmap
+1. [ ] Software integration
+	- DaVinci Resolve
+	- Blender
+2. [ ] Multiple database support
+	- Flow (Shotgrid, Shotgun forever!)
+	- Ftrack
+
 
 
 ## License
