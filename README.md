@@ -5,6 +5,11 @@ and provides a GUI (Task Manager + Publisher) to browse tasks, create project fo
 
 This README gives a practical overview of how the project is structured and how to run the tools locally.
 
+## Main Features
+- Task Manager UI to view user assignments based on database (currently Kitsu)
+- Publisher to upload previews into kitsu and working files into a desired location
+- File management that takes care of structure and naming convention based on database info
+
 ## Quick start (development)
 
 1. Create a virtual environment and activate it (Windows example):
