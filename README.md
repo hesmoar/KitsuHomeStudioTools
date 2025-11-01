@@ -1,43 +1,43 @@
+# WORK IN PROGRESS
 # Kitsu Home Pipeline Tools
 
 Kitsu Home Pipeline Tools is a small, home-grown pipeline toolkit that integrates with Kitsu for project tracking
-and provides a GUI (Task Manager + Publisher) to browse tasks, create project folders and publish files.
+and provides a GUI (Task Manager + Publisher) to browse tasks, create project folders and publish files. Helping you keep everything in order and your database updated 
 
 This README gives a practical overview of how the project is structured and how to run the tools locally.
 
 ## Main Features
-- Task Manager UI to view user assignments based on database (currently Kitsu)
-- Publisher to upload previews into kitsu and working files into a desired location
-- File management that takes care of structure and naming convention based on database info
+- **Task Manager**: A user interface to view, filter and manage kitsu tasks
+- **Publisher**: A user interface to publish working and preview files into Kitsu and your designated storage
 
-## Quick start (development)
+## Installation (Recommended Method)
 
-1. Create a virtual environment and activate it (Windows example):
+This is the easiest way to get started. You will download a self-contained application that runs without installing Python.
 
-```powershell
-py -3 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt   # or install packages below
+1.  Go to the [**Releases Page**](https://github.com/hesmoar/KitsuHomeStudioTools/releases) on this repository.
+2.  Download the latest `.zip` file (e.g., `KitsuHomeStudioTools-v1.0.0-windows.zip`).
+3.  Unzip the entire folder to a location on your computer.
+4.  Follow the **Configuration** steps below.
+5.  Run the application by double-clicking the `.exe` file (e.g., `run_task_manager.exe`).
+
+## Usage
+- Simply run the main executable (e.g. run_task_manager.exe)
+- In the gui insert the url for your Kitsu server
+- Using your pre-set user and password hit login
+
+## Development (Running from source)
+
+If you want to run or contribute to the development, you can run the tool from the source code.
+# 1. Clone the repository 
 ```
-
-2. Install the package in editable/development mode:
-
-```powershell
-pip install -e .
+git clone [https://github.com/hesmoar/KitsuHomeStudioTools.git](https://github.com/hesmoar/KitsuHomeStudioTools.git)
+cd KitsuHomeStudioTools
 ```
+# 2. Create Virtual environment
+# 3. Activate the virtual environment
+# 4. Install dependencies
+# 5. Run the application 
 
-3. Run the Task Manager GUI directly from source:
-
-```powershell
-python run_task_manager.py
-```
-
-Or import and call the entry point in Python:
-
-```python
-from kitsu_home_pipeline.UI.task_manager.gui import run_gui
-run_gui()
-```
 
 ## Requirements
 - Python 3.10+ (3.12 tested in the dev environment)
@@ -57,8 +57,6 @@ Key folders and modules inside `kitsu_home_pipeline/`:
 - `utils/` — pipeline utilities: `file_utils.py` (path creation, file moves), `kitsu_utils.py` (gazu wrappers and project/task helpers), `ffmpeg_utils.py`, `helpers.py`.
 - `integrations/resolve/` — Resolve-specific code (integration setup, timeline/render helpers).
 
-Use these modules to trace behavior: `create_entity_directory` in `utils/file_utils.py` builds Publish/Working paths,
-and `start_process` in the publisher calls the file move / publish pipeline.
 
 ## How the tool works (user flow)
 
@@ -108,6 +106,6 @@ There is a `tests/` directory with some small unit tests and integration helpers
 
 ---
 
-If you'd like, I can make this README even more specific (example screenshots, command examples for sequence conversion, or an explicit configuration sample). If you want that, tell me which sections to expand.
 
-License: MIT
+##License
+This project is licensed under the MIT License. See the LICENSE file for details.
