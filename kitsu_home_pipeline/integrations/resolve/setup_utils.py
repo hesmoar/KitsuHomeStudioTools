@@ -91,132 +91,133 @@ class ResolveSetup:
                               "DaVinci Resolve", 
                               "Support", 
                               "Fusion", 
-                              "Scripts")
+                              "Scripts",
+                              "Utility")
         elif self.system == "Darwin":  # macOS
             return os.path.expanduser("~/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts")
         elif self.system == "Linux":
             return os.path.expanduser("~/.local/share/DaVinciResolve/Fusion/Scripts")
         return None
 
-    def _set_windows_env_var(self, name, value, user=True):
-        """Set a Windows environment variable using the registry."""
-        try:
-            if user:
-                key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, 'Environment', 0, winreg.KEY_ALL_ACCESS)
-            else:
-                key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, 'System\\CurrentControlSet\\Control\\Session Manager\\Environment', 0, winreg.KEY_ALL_ACCESS)
-            
-            winreg.SetValueEx(key, name, 0, winreg.REG_EXPAND_SZ, value)
-            winreg.CloseKey(key)
-            
-            # Notify Windows about the change
-            import ctypes
-            HWND_BROADCAST = 0xFFFF
-            WM_SETTINGCHANGE = 0x1A
-            SMTO_ABORTIFHUNG = 0x0002
-            result = ctypes.windll.user32.SendMessageTimeoutW(
-                HWND_BROADCAST, WM_SETTINGCHANGE, 0, 'Environment',
-                SMTO_ABORTIFHUNG, 5000, None
-            )
-            return True
-        except Exception as e:
-            logger.error(f"Error setting Windows environment variable {name}: {e}")
-            return False
+    #def _set_windows_env_var(self, name, value, user=True):
+    #    """Set a Windows environment variable using the registry."""
+    #    try:
+    #        if user:
+    #            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, 'Environment', 0, winreg.KEY_ALL_ACCESS)
+    #        else:
+    #            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, 'System\\CurrentControlSet\\Control\\Session Manager\\Environment', 0, winreg.KEY_ALL_ACCESS)
+    #        
+    #        winreg.SetValueEx(key, name, 0, winreg.REG_EXPAND_SZ, value)
+    #        winreg.CloseKey(key)
+    #        
+    #        # Notify Windows about the change
+    #        import ctypes
+    #        HWND_BROADCAST = 0xFFFF
+    #        WM_SETTINGCHANGE = 0x1A
+    #        SMTO_ABORTIFHUNG = 0x0002
+    #        result = ctypes.windll.user32.SendMessageTimeoutW(
+    #            HWND_BROADCAST, WM_SETTINGCHANGE, 0, 'Environment',
+    #            SMTO_ABORTIFHUNG, 5000, None
+    #        )
+    #        return True
+    #    except Exception as e:
+    #        logger.error(f"Error setting Windows environment variable {name}: {e}")
+    #        return False
 
-    def setup_environment_variables(self):
-        """Set up environment variables for Resolve integration."""
-        try:
-            logger.info("Starting environment variable setup")
-            
-            # Get environment variables
-            env_vars = self._get_env_vars()
-            logger.info(f"Environment variables to set: {env_vars}")
-            
-            # Set each environment variable
-            for var_name, var_path in env_vars.items():
-                logger.info(f"Setting {var_name} to {var_path}")
-                
-                if var_name == "PYTHONPATH":
-                    # For PYTHONPATH, we need to handle it differently
-                    current_path = os.environ.get(var_name, "")
-                    if current_path:
-                        # Split existing paths and add new path if not present
-                        paths = current_path.split(os.pathsep)
-                        if var_path not in paths:
-                            paths.append(var_path)
-                        new_path = os.pathsep.join(paths)
-                    else:
-                        new_path = var_path
-                    
-                    # Set the environment variable
-                    os.environ[var_name] = new_path
-                    
-                    # Set in Windows registry
-                    self._set_windows_env_var(var_name, new_path)
-                else:
-                    # For other variables, set directly
-                    os.environ[var_name] = var_path
-                    
-                    # Set in Windows registry
-                    self._set_windows_env_var(var_name, var_path)
-            
-            logger.info("Successfully set environment variables")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Error setting environment variables: {str(e)}")
-            return False
+    #def setup_environment_variables(self):
+    #    """Set up environment variables for Resolve integration."""
+    #    try:
+    #        logger.info("Starting environment variable setup")
+    #        
+    #        # Get environment variables
+    #        env_vars = self._get_env_vars()
+    #        logger.info(f"Environment variables to set: {env_vars}")
+    #        
+    #        # Set each environment variable
+    #        for var_name, var_path in env_vars.items():
+    #            logger.info(f"Setting {var_name} to {var_path}")
+    #            
+    #            if var_name == "PYTHONPATH":
+    #                # For PYTHONPATH, we need to handle it differently
+    #                current_path = os.environ.get(var_name, "")
+    #                if current_path:
+    #                    # Split existing paths and add new path if not present
+    #                    paths = current_path.split(os.pathsep)
+    #                    if var_path not in paths:
+    #                        paths.append(var_path)
+    #                    new_path = os.pathsep.join(paths)
+    #                else:
+    #                    new_path = var_path
+    #                
+    #                # Set the environment variable
+    #                os.environ[var_name] = new_path
+    #                
+    #                # Set in Windows registry
+    #                self._set_windows_env_var(var_name, new_path)
+    #            else:
+    #                # For other variables, set directly
+    #                os.environ[var_name] = var_path
+    #                
+    #                # Set in Windows registry
+    #                self._set_windows_env_var(var_name, var_path)
+    #        
+    #        logger.info("Successfully set environment variables")
+    #        return True
+    #        
+    #    except Exception as e:
+    #        logger.error(f"Error setting environment variables: {str(e)}")
+    #        return False
 
-    def _create_user_setup_file(self):
-        """Create a file with instructions for manual environment variable setup."""
-        if self.system == "Windows":
-            instructions = """
-To set up DaVinci Resolve environment variables:
-
-1. Press Windows + R
-2. Type 'sysdm.cpl' and press Enter
-3. Go to the 'Advanced' tab
-4. Click 'Environment Variables'
-5. Under 'User variables', click 'New'
-6. Add the following variables:
-
-"""
-            for var_name, var_path in self.env_vars.items():
-                instructions += f"{var_name}: {var_path}\n"
-            
-            instructions += "\nNote: For PYTHONPATH, append the path to your existing PYTHONPATH if it exists."
-        else:
-            instructions = """
-To set up DaVinci Resolve environment variables:
-
-1. Open Terminal
-2. Edit your shell profile:
-   - For bash: nano ~/.bash_profile
-   - For zsh: nano ~/.zshrc
-3. Add these lines:
-
-"""
-            for var_name, var_path in self.env_vars.items():
-                if var_name == "PYTHONPATH":
-                    instructions += f'export {var_name}="$PYTHONPATH:{var_path}"\n'
-                else:
-                    instructions += f'export {var_name}="{var_path}"\n'
-            
-            instructions += "\n4. Save the file and restart your terminal"
-
-        # Save instructions to a file
-        setup_file = os.path.join(os.path.expanduser("~"), "resolve_setup_instructions.txt")
-        with open(setup_file, "w") as f:
-            f.write(instructions)
-        
-        return setup_file
-
-    def find_resolve_installation(self):
-        """Find Resolve installation directory."""
-        for path in self.resolve_paths:
-            if os.path.exists(path):
-                return path
-        return None
+    #def _create_user_setup_file(self):
+    #    """Create a file with instructions for manual environment variable setup."""
+    #    if self.system == "Windows":
+    #        instructions = """
+#To set up DaVinci Resolve environment variables:
+#
+#1. Press Windows + R
+#2. Type 'sysdm.cpl' and press Enter
+#3. Go to the 'Advanced' tab
+#4. Click 'Environment Variables'
+#5. Under 'User variables', click 'New'
+#6. Add the following variables:
+#
+#"""
+#            for var_name, var_path in self.env_vars.items():
+#                instructions += f"{var_name}: {var_path}\n"
+#            
+#            instructions += "\nNote: For PYTHONPATH, append the path to your existing PYTHONPATH if it exists."
+#        else:
+#            instructions = """
+#To set up DaVinci Resolve environment variables:
+#
+#1. Open Terminal
+#2. Edit your shell profile:
+#   - For bash: nano ~/.bash_profile
+#   - For zsh: nano ~/.zshrc
+#3. Add these lines:
+#
+#"""
+#            for var_name, var_path in self.env_vars.items():
+#                if var_name == "PYTHONPATH":
+#                    instructions += f'export {var_name}="$PYTHONPATH:{var_path}"\n'
+#                else:
+#                    instructions += f'export {var_name}="{var_path}"\n'
+#            
+#            instructions += "\n4. Save the file and restart your terminal"
+#
+#        # Save instructions to a file
+#        setup_file = os.path.join(os.path.expanduser("~"), "resolve_setup_instructions.txt")
+#        with open(setup_file, "w") as f:
+#            f.write(instructions)
+#        
+#        return setup_file
+#
+#    def find_resolve_installation(self):
+#        """Find Resolve installation directory."""
+#        for path in self.resolve_paths:
+#            if os.path.exists(path):
+#                return path
+#        return None
 
     def setup_integration(self, source_scripts_dir):
         """
@@ -353,97 +354,97 @@ To set up DaVinci Resolve environment variables:
 
         return True
 
-    def verify_environment(self):
-        """Verify that the environment variables are set correctly."""
-        logger.info("Verifying environment variables")
-        missing_vars = []
-        
-        for var_name, var_path in self.env_vars.items():
-            current_value = os.environ.get(var_name)
-            logger.info(f"Checking {var_name}: current value = {current_value}, expected path = {var_path}")
-            
-            if not current_value:
-                missing_vars.append(var_name)
-                logger.warning(f"Missing environment variable: {var_name}")
-            elif var_name == "PYTHONPATH":
-                # For PYTHONPATH, we only verify that the variable is set
-                # since it's a list of paths and we don't need to check if each path exists
-                logger.info(f"PYTHONPATH is set to: {current_value}")
-            elif not os.path.exists(current_value):
-                missing_vars.append(f"{var_name} (path does not exist: {current_value})")
-                logger.warning(f"Path does not exist for {var_name}: {current_value}")
-
-        instructions_file = os.path.join(os.path.expanduser("~"), "resolve_setup_instructions.txt")
-        return {
-            "success": len(missing_vars) == 0,
-            "missing_vars": missing_vars,
-            "instructions_file": instructions_file
-        }
-
-    def get_setup_instructions(self):
-        """Get the path to the setup instructions file."""
-        return os.path.join(os.path.expanduser("~"), "resolve_setup_instructions.txt")
-
-    def _create_setup_instructions(self):
-        """Create a file with setup instructions for manual configuration."""
-        instructions_file = os.path.join(os.path.expanduser("~"), "resolve_setup_instructions.txt")
-        
-        # Get environment variables
-        env_vars = self._get_env_vars()
-        
-        # Create instructions based on OS
-        if sys.platform == "win32":
-            instructions = """DaVinci Resolve Integration Setup Instructions (Windows)
-
-1. Open System Properties:
-   - Press Windows + R
-   - Type 'sysdm.cpl' and press Enter
-   - Click on 'Advanced' tab
-   - Click 'Environment Variables'
-
-2. Under 'User variables', add or modify these variables:
-"""
-            for var_name, var_path in env_vars.items():
-                instructions += f"\n{var_name} = {var_path}\n"
-                
-        elif sys.platform == "darwin":  # macOS
-            instructions = """DaVinci Resolve Integration Setup Instructions (macOS)
-
-1. Open Terminal
-2. Edit your shell profile (e.g., ~/.zshrc or ~/.bash_profile)
-3. Add these lines:
-"""
-            for var_name, var_path in env_vars.items():
-                instructions += f"\nexport {var_name}={var_path}\n"
-                
-        else:  # Linux
-            instructions = """DaVinci Resolve Integration Setup Instructions (Linux)
-
-1. Open Terminal
-2. Edit your shell profile (e.g., ~/.bashrc)
-3. Add these lines:
-"""
-            for var_name, var_path in env_vars.items():
-                instructions += f"\nexport {var_name}={var_path}\n"
-        
-        # Add general instructions
-        instructions += """
-4. Save the file and restart your terminal/computer
-5. Verify the setup by opening DaVinci Resolve
-6. The Kitsu integration should be available in the Workspace menu
-
-If you need help, please check the logs or contact support.
-"""
-        
-        # Write instructions to file
-        try:
-            with open(instructions_file, 'w') as f:
-                f.write(instructions)
-            logger.info(f"Created setup instructions at: {instructions_file}")
-            return instructions_file
-        except Exception as e:
-            logger.error(f"Failed to create setup instructions: {str(e)}")
-            return None
+#    def verify_environment(self):
+#        """Verify that the environment variables are set correctly."""
+#        logger.info("Verifying environment variables")
+#        missing_vars = []
+#        
+#        for var_name, var_path in self.env_vars.items():
+#            current_value = os.environ.get(var_name)
+#            logger.info(f"Checking {var_name}: current value = {current_value}, expected path = {var_path}")
+#            
+#            if not current_value:
+#                missing_vars.append(var_name)
+#                logger.warning(f"Missing environment variable: {var_name}")
+#            elif var_name == "PYTHONPATH":
+#                # For PYTHONPATH, we only verify that the variable is set
+#                # since it's a list of paths and we don't need to check if each path exists
+#                logger.info(f"PYTHONPATH is set to: {current_value}")
+#            elif not os.path.exists(current_value):
+#                missing_vars.append(f"{var_name} (path does not exist: {current_value})")
+#                logger.warning(f"Path does not exist for {var_name}: {current_value}")
+#
+#        instructions_file = os.path.join(os.path.expanduser("~"), "resolve_setup_instructions.txt")
+#        return {
+#            "success": len(missing_vars) == 0,
+#            "missing_vars": missing_vars,
+#            "instructions_file": instructions_file
+#        }
+#
+#    def get_setup_instructions(self):
+#        """Get the path to the setup instructions file."""
+#        return os.path.join(os.path.expanduser("~"), "resolve_setup_instructions.txt")
+#
+#    def _create_setup_instructions(self):
+#        """Create a file with setup instructions for manual configuration."""
+#        instructions_file = os.path.join(os.path.expanduser("~"), "resolve_setup_instructions.txt")
+#        
+#        # Get environment variables
+#        env_vars = self._get_env_vars()
+#        
+#        # Create instructions based on OS
+#        if sys.platform == "win32":
+#            instructions = """DaVinci Resolve Integration Setup Instructions (Windows)
+#
+#1. Open System Properties:
+#   - Press Windows + R
+#   - Type 'sysdm.cpl' and press Enter
+#   - Click on 'Advanced' tab
+#   - Click 'Environment Variables'
+#
+#2. Under 'User variables', add or modify these variables:
+#"""
+#            for var_name, var_path in env_vars.items():
+#                instructions += f"\n{var_name} = {var_path}\n"
+#                
+#        elif sys.platform == "darwin":  # macOS
+#            instructions = """DaVinci Resolve Integration Setup Instructions (macOS)
+#
+#1. Open Terminal
+#2. Edit your shell profile (e.g., ~/.zshrc or ~/.bash_profile)
+#3. Add these lines:
+#"""
+#            for var_name, var_path in env_vars.items():
+#                instructions += f"\nexport {var_name}={var_path}\n"
+#                
+#        else:  # Linux
+#            instructions = """DaVinci Resolve Integration Setup Instructions (Linux)
+#
+#1. Open Terminal
+#2. Edit your shell profile (e.g., ~/.bashrc)
+#3. Add these lines:
+#"""
+#            for var_name, var_path in env_vars.items():
+#                instructions += f"\nexport {var_name}={var_path}\n"
+#        
+#        # Add general instructions
+#        instructions += """
+#4. Save the file and restart your terminal/computer
+#5. Verify the setup by opening DaVinci Resolve
+#6. The Kitsu integration should be available in the Workspace menu
+#
+#If you need help, please check the logs or contact support.
+#"""
+#        
+#        # Write instructions to file
+#        try:
+#            with open(instructions_file, 'w') as f:
+#                f.write(instructions)
+#            logger.info(f"Created setup instructions at: {instructions_file}")
+#            return instructions_file
+#        except Exception as e:
+#            logger.error(f"Failed to create setup instructions: {str(e)}")
+#            return None
 
 def setup_resolve_integration(source_scripts_dir):
     """

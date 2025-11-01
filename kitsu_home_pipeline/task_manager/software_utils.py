@@ -37,6 +37,28 @@ def launch_krita(software_path, task_context):
 def launch_nuke(software_path):
     print("Launching Nuke...")
 
+def launch_storyboarder(software_path, task_context):
+    print("Launching Storyboarder...")
+    try:
+        subprocess.Popen([software_path])
+        create_context_file(task_context)
+
+    except FileNotFoundError:
+        QMessageBox.warning(f"Error: {software_path} not found. Please check the path.")
+    except Exception as e:
+        QMessageBox.warning(f"Error Failed to launch software:{e}")
+
+def launch_blender(software_path, task_context):
+    print("Launching Blender...")
+    try:
+        subprocess.Popen([software_path])
+        create_context_file(task_context)
+
+    except FileNotFoundError:
+        QMessageBox.warning(f"Error: {software_path} not found. Please check the path.")
+    except Exception as e:
+        QMessageBox.warning(f"Error Failed to launch software:{e}")
+
 
 def get_tmp_dir():
     return os.path.join(tempfile.gettempdir(), "KitsuTaskManager")

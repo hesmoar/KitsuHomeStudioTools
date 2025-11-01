@@ -1,0 +1,180 @@
+{
+    "CONNECTIONS": [
+        [
+            "Storyboard.Timeline",
+            "Editing.timeline_json"
+        ],
+        [
+            "Editing.Playblast",
+            "Kitsu_Tracking.Preview File"
+        ],
+        [
+            "Editing.Playblast",
+            "Review.Review"
+        ],
+        [
+            "Editing.Timeline",
+            "Kitsu_Tracking.Timeline"
+        ],
+        [
+            "Storyboard.Thumbnails",
+            "Editing.Thumbnails"
+        ]
+    ],
+    "NODES": {
+        "Editing": {
+            "alternate": true,
+            "attributes": [
+                {
+                    "connectionIcon": "./json.png",
+                    "connectionLabel": null,
+                    "dataType": "<class 'modules.manager.JSON'>",
+                    "name": "timeline_json",
+                    "plug": false,
+                    "plugMaxConnections": -1,
+                    "preset": "attr_preset_1",
+                    "socket": true,
+                    "socketMaxConnections": 1
+                },
+                {
+                    "connectionIcon": "./jpg.png",
+                    "connectionLabel": null,
+                    "dataType": "<class 'modules.manager.JPG'>",
+                    "name": "Thumbnails",
+                    "plug": false,
+                    "plugMaxConnections": -1,
+                    "preset": "attr_preset_1",
+                    "socket": true,
+                    "socketMaxConnections": 1
+                },
+                {
+                    "connectionIcon": "./otio.png",
+                    "connectionLabel": null,
+                    "dataType": "<class 'modules.manager.OTIO'>",
+                    "name": "Timeline",
+                    "plug": true,
+                    "plugMaxConnections": -1,
+                    "preset": "attr_preset_2",
+                    "socket": false,
+                    "socketMaxConnections": 1
+                },
+                {
+                    "connectionIcon": "./review.png",
+                    "connectionLabel": null,
+                    "dataType": "<class 'modules.manager.REVIEW'>",
+                    "name": "Playblast",
+                    "plug": true,
+                    "plugMaxConnections": -1,
+                    "preset": "attr_preset_2",
+                    "socket": false,
+                    "socketMaxConnections": 1
+                },
+                {
+                    "connectionIcon": "./exr.png",
+                    "connectionLabel": null,
+                    "dataType": "<class 'modules.manager.EXR'>",
+                    "name": "Frames",
+                    "plug": true,
+                    "plugMaxConnections": -1,
+                    "preset": "attr_preset_2",
+                    "socket": false,
+                    "socketMaxConnections": 1
+                }
+            ],
+            "metadata": {},
+            "position": [
+                1211.08,
+                725.0
+            ],
+            "preset": "node_preset_1"
+        },
+        "Kitsu_Tracking": {
+            "alternate": true,
+            "attributes": [
+                {
+                    "connectionIcon": "./otio.png",
+                    "connectionLabel": null,
+                    "dataType": "<class 'modules.manager.OTIO'>",
+                    "name": "Timeline",
+                    "plug": false,
+                    "plugMaxConnections": -1,
+                    "preset": "attr_preset_1",
+                    "socket": true,
+                    "socketMaxConnections": 1
+                },
+                {
+                    "connectionIcon": "./review.png",
+                    "connectionLabel": null,
+                    "dataType": "<class 'modules.manager.REVIEW'>",
+                    "name": "Preview File",
+                    "plug": false,
+                    "plugMaxConnections": -1,
+                    "preset": "attr_preset_1",
+                    "socket": true,
+                    "socketMaxConnections": 1
+                }
+            ],
+            "metadata": {},
+            "position": [
+                1782.28,
+                860.0
+            ],
+            "preset": "node_preset_1"
+        },
+        "Review": {
+            "alternate": true,
+            "attributes": [
+                {
+                    "connectionIcon": "./review.png",
+                    "connectionLabel": null,
+                    "dataType": "<class 'modules.manager.REVIEW'>",
+                    "name": "Review",
+                    "plug": false,
+                    "plugMaxConnections": -1,
+                    "preset": "attr_preset_1",
+                    "socket": true,
+                    "socketMaxConnections": 1
+                }
+            ],
+            "metadata": {},
+            "position": [
+                1782.28,
+                590.0
+            ],
+            "preset": "node_preset_1"
+        },
+        "Storyboard": {
+            "alternate": true,
+            "attributes": [
+                {
+                    "connectionIcon": "./json.png",
+                    "connectionLabel": null,
+                    "dataType": "<class 'modules.manager.JSON'>",
+                    "name": "Timeline",
+                    "plug": true,
+                    "plugMaxConnections": -1,
+                    "preset": "attr_preset_2",
+                    "socket": false,
+                    "socketMaxConnections": 1
+                },
+                {
+                    "connectionIcon": "./jpg.png",
+                    "connectionLabel": null,
+                    "dataType": "<class 'modules.manager.JPG'>",
+                    "name": "Thumbnails",
+                    "plug": true,
+                    "plugMaxConnections": -1,
+                    "preset": "attr_preset_2",
+                    "socket": false,
+                    "socketMaxConnections": 1
+                }
+            ],
+            "metadata": {},
+            "position": [
+                707.452,
+                725.0
+            ],
+            "preset": "node_preset_1"
+        }
+    }
+}

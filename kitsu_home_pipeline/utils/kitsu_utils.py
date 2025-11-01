@@ -7,19 +7,35 @@ import json
 from kitsu_home_pipeline.utils.context_from_json import get_context_from_json 
 
 
+def get_user_info(user_email):
+    user_info = gazu.person.get_person_by_email(user_email)
+    if user_info:
+        return user_info
+    else:
+        print("User not found")
+
 def get_user_projects():
     project_names = []
     projects ={}
     user_active_projects = gazu.user.all_open_projects()
-    print("User active projects: ")
+    #print("User active projects: ")
     #pprint.pprint(user_active_projects)
     for project in user_active_projects:
-        print(f"Project Name: {project["name"]}")
+        #print(f"Project Name: {project["name"]}")
         #print(f"Project ID: {project["id"]}")
         project_names.append(project["name"])
         projects[project["name"]] = project["id"]
     #pprint.pprint(projects)
     return project_names
+
+def get_project_code():
+    projects = get_user_projects()
+    project_codes = {}
+    for project in projects:
+        project_info = gazu.project.get_project_by_name(project)
+        if project_info:
+            project_codes[project] = project_info.get("code", "")
+    return project_codes
 
 def get_project_info(project_name=None):
     if not project_name:
@@ -70,8 +86,8 @@ def get_user_tasks_for_project(user_email, project_name):
 # This is where we first get the info for the task context.
     for task in tasks:
         if task["project_name"] == project_name:
-            print("This is a task")
-            pprint.pprint(task)
+            #print("This is a task")
+            #pprint.pprint(task)
             if task["entity_name"] not in entity_names:
                 entity_names.append(task["entity_name"])
                 entity_types.append(task["entity_type_name"])
@@ -177,7 +193,7 @@ def get_review_status():
 
 #TODO: Add functions to create working files and output files as well as preview file.
 def create_working_file(task_context, software, comment, person, path):
-    print("Creating a working file! YAY")
+    """print("Creating a working file! YAY")
 
     print("These are the values for the working file: ")
     print("this is the task")
@@ -196,7 +212,7 @@ def create_working_file(task_context, software, comment, person, path):
     print("Task type short name:", task_context["task_type"]["short_name"])
     print("Entity name:", task_context["entity"]["name"])
     print("Sequence name:", task_context["sequence"]["name"])
-
+"""
     
     publish_working_file = gazu.files.new_working_file(
         task=task_context,
@@ -225,8 +241,26 @@ def working_file_path(task_context, software):
     print("This is the generated path for working file: ")
     print(working_file_path)
 
+#def output_file_path(entity):
+#    output_file_path = gazu.files.build_entity_output_file_path(
+#        entity,
+#        output_type=,
+#        task_type=,
+#        name="main",
+#        mode="output",
+#        representation="",
+#        revision=0,
+#        nb_elements=1,
+#        sep="/"
+#    )
+
 def create_output_file():
     print("Creating an output file YAY YAY!")
+
+def updating_preview_data(preview_id, data):
+    new_preview_data = gazu.files.update_preview(preview_id, data)
+    print("This is the updated preview data: ")
+    pprint.pprint(new_preview_data)
 
 def create_preview_file(task_context, person, comment, file_path):
     print("Creating a preview file YAY YAY YAY")
@@ -255,6 +289,8 @@ def create_preview_file(task_context, person, comment, file_path):
     )
     print("This is the preview published and its data: ")
     pprint.pprint(publish_preview)
+    publish_preview_id = publish_preview[1].get("id")
+    return publish_preview_id
 
 def publish_new_version():
     """This function should call all 3 previous functions, publishing the working file,
@@ -276,6 +312,23 @@ For the context needed from the task manager we need the following info:
 - Shot ID
 
 """
+
+def find_task_preview_files(task_id):
+    all_task_previews_dict = gazu.files.get_all_preview_files_for_task(task_id)
+    simplified_task_previews = {}
+    for preview_in_task in all_task_previews_dict:
+        preview_id = preview_in_task.get("id")
+        revision = preview_in_task.get("revision")
+        original_name = preview_in_task.get("original_name")
+
+        simplified_task_previews [original_name] = {
+            "revision": revision,
+            "id": preview_id
+        }
+    
+    print("These are the previews and their name, revision and ID")
+    pprint.pprint(simplified_task_previews)
+    return simplified_task_previews
 
 if __name__ == "__main__":
     create_preview_file()

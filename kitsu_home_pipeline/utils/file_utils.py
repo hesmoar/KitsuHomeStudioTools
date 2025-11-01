@@ -1,4 +1,5 @@
 import os
+import re
 import tempfile
 import json
 import shutil
@@ -179,6 +180,15 @@ def generate_paths(context, path_types=("working", "output")):
     pprint.pprint(full_paths)
     return all_paths
 
+def network_drive_detected(drive_letter):
+    drive_path = f"{drive_letter.upper()}:\\"
+    print(f"Checking for drive: {drive_path}")
+    if os.path.exists(drive_path):
+        print(f"Network drive {drive_letter} detected")
+        return drive_path
+    else:
+        print(f"Network drive {drive_letter} not detected.")
+        return None
 
 def current_context_path():
     filetree_context = map_kitsu_context_to_filetree()
@@ -197,7 +207,267 @@ def current_context_path():
     
     return working_dir, output_dir
 
+def create_main_directory(base_drive, root_folder, projects):
 
-#map_kitsu_context_to_filetree(task_context)
-#current_context_path(task_context)
+    root_path = Path(base_drive) / root_folder
+    for project in projects:
+        project_path = Path(root_path) / project
+        subfolders = ["Publish", "Working"]
+        for subfolder in subfolders:
+            folder_path = project_path / subfolder
+            subSubfolders = ["Asset", "Shot"]
+            for subSubfolder in subSubfolders:
+                subfolder_path = folder_path / subSubfolder
+                if not subfolder_path.exists():
+                    print(f"Creating main directory on {subfolder_path}...")
+                    subfolder_path.mkdir(parents=True, exist_ok=True)
+                    print(f"Main directory created at: {subfolder_path}")
+                else:
+                    print(f"Main directory already exists at: {subfolder_path}")
 
+    #print(f"THIS IS THE SUBFOLDER PATH: {subfolder_path}")
+    return subfolder_path
+
+def create_entity_directory(root_path, project, entity_type, task_code, entity_name):
+    project_path = Path(root_path) / project
+    if entity_type.lower() == "shot":
+        #entity_path = Path()
+        #subfolders = [entity_name, task_code]
+        print("Creating directory for shot")
+        base_folder = "Shot"
+
+    elif entity_type.lower() == "asset":
+        print("Creating  directory for asset")
+        base_folder = "Asset"
+
+    else:
+        print(f"Unknown entity type: {entity_type}")
+        return None, None
+    
+    publish_path = project_path / "Publish" / base_folder / entity_name / task_code
+    working_path = project_path / "Working" / base_folder / entity_name / task_code
+    
+    for full_path in [publish_path, working_path]:
+        try:
+            print(f"Creating directory: {full_path}...")
+            full_path.mkdir(parents=True, exist_ok=True)
+        except Exception as e:
+            print(f"Error creating directory {full_path}: {e}")
+            #print(f"Directory already exists: {full_path}")
+    return str(publish_path), str(working_path)
+
+def move_working_to_publish(src_directory, dst_directory):
+    src = Path(src_directory)
+    dst = Path(dst_directory)
+
+    if not dst.exists():
+        print(f"Copying file to publish: {dst}")
+        shutil.copy2(src, dst)
+        print("File Copy succesfull")
+    else:
+        print("File already in publish. Skipping Copy.")
+
+def move_preview_to_publish(src_directory, dst_directory):
+    src = Path(src_directory)
+    dst = Path(dst_directory)
+
+    print(f"Source path: {src}")
+    print(f"Destination path: {dst}")
+
+    _, preview_ext = os.path.splitext(src)
+    preview_extension = preview_ext.lstrip(".")
+
+    print(f"This is the original extension: {preview_extension}")
+
+    filename = os.path.basename(dst)
+    basename = os.path.splitext(filename)[0]
+    print(f"This is the file name: {filename}")
+    print(f"This is the base name: {basename}")
+    new_filename = os.path.join(basename + "." + preview_extension)
+    print(f"This is the new file name: {new_filename}")
+
+    file_version = new_filename.split("_v")[-1].split(".")[0]
+    print(f"This is the file version: {file_version}")
+
+    new_folder_name = f"v{file_version}"
+    print(f"New folder name: {new_folder_name}")
+
+    dst_parent = dst.parent
+    print(f"Destination parent folder: {dst_parent}")
+    version_folder = dst_parent / new_folder_name
+    version_folder.mkdir(parents=True, exist_ok=True)
+
+
+    preview_folder = version_folder / new_filename
+
+    print(f"Preview NEW path: {preview_folder}")
+
+
+
+    if not preview_folder.exists():
+        print(f"Copying preview to publish: {preview_folder}")
+        shutil.copy2(src, preview_folder)
+        print("Preview file copy succesfull")
+    else:
+        print("Preview file already in publish. Skipping Copy.")
+    
+    return preview_folder
+
+def create_file_name(project_code, entity_name, task_code):
+    base_name = f"{project_code}_{entity_name}_{task_code}"
+
+    print(f"This is the filename: {base_name} ")
+    return base_name
+
+
+
+def collect_published_files(src_directory):
+    published_files = {}
+    ignored_files = {"desktop.ini", ".ds_store", "thumbs.db"}
+    src = Path(src_directory)
+    #if src.exists() and src.is_dir():
+    if os.path.exists(src_directory) and os.path.isdir(src_directory):
+        print(f"Scanning directory: {src_directory}")
+        try:
+            with os.scandir(src_directory) as entries:
+                for entry in entries:
+                    if entry.is_file() and entry.name.lower() not in ignored_files:
+                        published_files[entry.name] = entry.path
+                        print(f"Found published file {entry.name}")
+                    else:
+                        print(f"This is not a file {entry.name}")
+        except Exception as e:
+            print(f"Error scanning directory {src_directory}")
+    else:
+        print(f"Source directory does not exist {src_directory}")
+
+    print("Collected files: ")
+    for name, path in published_files.items():
+        print(f"{name}: {path}")
+
+    return published_files
+
+def get_max_version_file(file_dict):
+    max_version = -1
+    max_file = None
+    version_pattern = re.compile(r'_v(\d{3})')
+
+    for filename, filepath in file_dict.items():
+        match = version_pattern.search(filename)
+        if match:
+            version = int(match.group(1))
+            if version > max_version:
+                max_version = version
+                max_file = filepath
+
+    if max_file:
+        print(f"Max version file: {max_file} with version {max_version}")
+    else:
+        print("No versioned files found.")
+
+    return max_file, max_version
+
+
+def get_working_directory_from_publish_path(published_file_path):
+    working_path_with_filename = published_file_path.replace("\\Publish\\", "\\Working\\").replace("/Publish/", "/Working/")
+
+    working_directory = os.path.dirname(working_path_with_filename)
+
+    return working_directory
+
+def get_next_available_version(base_name, directory, extension, initial_version):
+    extension_with_dot = f".{extension}" if extension else ""
+
+    existing_versions = []
+
+    for filename in os.listdir(directory):
+        if filename.startswith(base_name) and filename.endswith(extension_with_dot):
+            version_match = re.search(r'_v(\d{3})' + re.escape(extension_with_dot) + r'$', filename)
+            if version_match:
+                version = int(version_match.group(1))
+                existing_versions.append(version)
+    
+    max_existing_version = max(existing_versions, default=0)
+
+    safe_version = max(max_existing_version, initial_version) + 1
+
+    return safe_version
+
+def create_working_from_publish(published_file_path):
+
+    working_directory = get_working_directory_from_publish_path(published_file_path)
+    # Ensure the working directory exists
+    if not os.path.exists(working_directory):
+        os.makedirs(working_directory, exist_ok=True)
+    
+    # --- 1. Extract Name, Extension, and Version from Published Path ---
+    full_filename = Path(published_file_path).name
+    base_name_with_version, extension_with_dot = os.path.splitext(full_filename)
+    extension = extension_with_dot.lstrip(".")
+
+    # Regular expression to find and capture the base name and the version number
+    # Assumes the format is 'basename_vXXX.ext'
+    match = re.search(r'(.+?)_v(\d{3})$', base_name_with_version)
+
+    if not match:
+        print(f"Error: Published file name '{full_filename}' does not follow the expected '_vXXX' versioning format.")
+        # Handle error or use a default version (v001)
+        return
+
+    clean_basename = match.group(1) # e.g., 'my_asset'
+    current_version = int(match.group(2)) # e.g., 1
+
+    final_version = get_next_available_version(
+        clean_basename,
+        working_directory,
+        extension,
+        current_version
+    )
+
+    new_filename = f"{clean_basename}_v{final_version:03d}{extension_with_dot}"
+    
+  
+    source_file = published_file_path
+    destination_path = os.path.join(working_directory, new_filename)
+    
+    # Print for confirmation
+    print(f"Published file details: Base='{clean_basename}', Current Version='{current_version}'")
+    print(f"New working file: '{new_filename}'")
+    print(f"Creating working file: {destination_path} from publish: {source_file} ")
+
+    try:
+        shutil.copy2(source_file, destination_path) # copy2 preserves metadata
+        print(f"Successfully created working file at: {destination_path}")
+        return destination_path
+    except FileNotFoundError:
+        print(f"Error: Source file not found at {source_file}")
+    except Exception as e:
+        print(f"An error occurred during copy: {e}")
+
+
+def get_unique_filename(base_name, directory, extension=""):
+    """Generate a unique filename with an incremental version number."""
+    if not os.path.exists(directory):
+        print(f"Error: Export directory '{directory}' does not exist.")
+        return None, None
+    extension = f".{extension}" if extension else ""
+    existing_versions = [ 
+        int(filename[len(base_name) + 2 : -len(extension)] )
+        for filename in os.listdir(directory)
+        if filename.startswith(base_name) and filename.endswith(extension)
+        and filename[len(base_name) + 2 : -len(extension)].isdigit()
+    ]
+
+    version = max(existing_versions, default=0) + 1
+    filename = f"{base_name}_v{version:03d}{extension}"
+    full_file_path = os.path.join(directory, filename)
+    print(f"This is the full file path CHECK NOW!: {full_file_path}")
+    return os.path.join(directory, filename), filename
+
+def open_file_location(file_path):
+    if os.path.exists(file_path):
+        folder_path = os.path.dirname(file_path)
+        os.startfile(folder_path)
+    else:
+        print(f"File does not exist: {file_path}")
+      

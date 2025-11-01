@@ -6,6 +6,7 @@ import json
 import logging
 import pprint
 from datetime import datetime
+from kitsu_home_pipeline.utils.helpers import resource_path
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton,
     QCheckBox, QRadioButton, QButtonGroup, QFileDialog, QHBoxLayout, QGroupBox, 
@@ -13,6 +14,7 @@ from PySide6.QtWidgets import (
     QTabWidget, QTableWidget, QTableWidgetItem, QHeaderView, QFormLayout, QGridLayout, 
     QMessageBox, QListWidget, QListWidgetItem, QMenu, QToolButton, QSizeGrip
 )
+#from Qt5 import QtWidgets, QtCore, QtGui
 from PySide6.QtGui import QIcon, QPixmap, QFont, QColor, QPalette
 from PySide6.QtCore import Qt, QSize, QThread, Signal
 from kitsu_home_pipeline.utils import (
@@ -24,10 +26,11 @@ from kitsu_home_pipeline.utils import (
     get_project_short_name,
     get_task_short_name
 )
-from kitsu_home_pipeline.utils.auth import connect_to_kitsu, load_credentials, clear_credentials
-#from kitsu_auth import connect_to_kitsu, load_credentials, clear_credentials
-from kitsu_home_pipeline.utils.file_utils import clean_up_temp_files
+from kitsu_home_pipeline.utils.auth import connect_to_kitsu, kitsu_auto_login, load_credentials, clear_credentials
+from kitsu_home_pipeline.utils.file_utils import clean_up_temp_files, create_main_directory, collect_published_files
 from kitsu_home_pipeline.UI.publisher.new_gui import run_publisher_gui
+from kitsu_home_pipeline.utils.kitsu_utils import get_project_code, get_user_info
+from kitsu_home_pipeline.UI.task_manager.log_console import LogConsole
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -61,18 +64,22 @@ class TaskManager(QMainWindow):
         super().__init__()
         self.setWindowTitle("Kitsu Task Manager")
 
-        icon_path = os.path.join(current_dir, "icons", "KitsuTaskManagerIcon.ico")
+        #icon_path = os.path.join(current_dir, "icons", "KitsuTaskManagerIcon.ico")
+        icon_path = resource_path("icons/KitsuTaskManagerIcon.ico")
         self.setWindowIcon(QIcon(icon_path))
         self.setGeometry(50, 50, 400, 300)
 
         # Initialize software detection
         self.software_availability = {}
-        self.detect_installed_software()
+        #self.detect_installed_software()
+        
+        # Set the initial directory
+
+#TODO: Fix this, as its not working correctly
 
         stored_credentials = load_credentials()
         if stored_credentials:
             self.selections = stored_credentials
-            self.auto_login()
             if self.auto_login():
                 return
             
@@ -216,11 +223,13 @@ class TaskManager(QMainWindow):
 
     def auto_login(self):
         try:
-            connect_to_kitsu(
-                self.selections["kitsu_url"],
-                self.selections["username"],
-                self.selections["password"]
-            )
+            #connect_to_kitsu(
+            #    self.selections["kitsu_url"],
+            #    self.selections["username"],
+            #    self.selections["password"]
+            #)
+            kitsu_auto_login()
+            
             self.update_ui_with_kitsu()
             # Set up DCC integrations after successful login
             #self.setup_dcc_integrations()
@@ -246,7 +255,6 @@ class TaskManager(QMainWindow):
                 self.selections["username"],
                 self.selections["password"]
             )
-
             self.update_ui_with_kitsu()
             # Set up DCC integrations after successful login
             #self.setup_dcc_integrations()
@@ -262,6 +270,8 @@ class TaskManager(QMainWindow):
                     "Resolve": self.is_software_installed("Resolve.exe"),
                     "Krita": self.is_software_installed("krita.exe"),
                     "Nuke": self.is_software_installed("Nuke.exe"),
+                    "Storyboarder": self.is_software_installed("Storyboarder.exe"),
+                    "Blender": self.is_software_installed("blender.exe"),
                 }
                 logger.info(f"Detected software: {self.software_availability}")
             
@@ -304,11 +314,21 @@ class TaskManager(QMainWindow):
         
         self.setGeometry(50, 50, 400, 300)
         self.show_login_screen()
+
+    def restart_app(self):
+        clear_credentials()
+        self.selections = {}
+        clean_up_temp_files()
+
+        QtWidgets.qApp.quit()
+        os.execl(sys.executable, sys.executable, *sys.argv)
     
     def unpack_projects(self):
         project_names, project_dict = get_user_projects()
 
     def update_ui_with_kitsu(self):
+
+        self.initial_directory_setup(drive_letter='x', root_folder='KitsuProjects')
 
         # Main Window
         self.setGeometry(100, 100, 1200, 600)
@@ -332,7 +352,10 @@ class TaskManager(QMainWindow):
         header_left_column = QVBoxLayout()
         header_left_column.setAlignment(Qt.AlignLeft)
 
-        self.header_label = QLabel(f"Welcome", self)
+        user_info = get_user_info(self.selections["username"])
+        user_name = user_info.get("first_name", "") + " " + user_info.get("last_name", "")
+
+        self.header_label = QLabel(f"Welcome: {user_name}", self)
         self.header_label.setAlignment(Qt.AlignLeft)
         self.header_label.setStyleSheet("font-size: 24px; font-weight: bold;")
         header_left_column.addWidget(self.header_label)
@@ -355,7 +378,8 @@ class TaskManager(QMainWindow):
 
         menu = QMenu(self)
         menu.addAction(self.selections["username"], self.view_profile)
-        menu.addAction("Settings", self.view_settings)
+        #menu.addAction("Settings", self.view_settings)
+        menu.addAction("Console logs", self.view_console)
         menu.addAction("Logout", self.logout)
 
         self.username_button.setMenu(menu)
@@ -423,6 +447,7 @@ class TaskManager(QMainWindow):
 
         self.tasks_list = QListWidget(self)
         self.tasks_list.addItems(["Your tasks"])
+        self.tasks_list.itemClicked.connect(self.on_task_selected)
         tasks_layout.addWidget(self.tasks_list)
 
         third_column.addWidget(tasks_group)
@@ -442,16 +467,16 @@ class TaskManager(QMainWindow):
         # Left Column (Second level)
         second_right_column = QVBoxLayout()
 
-        versions_group = QGroupBox("Versions")
+        versions_group = QGroupBox("Published Versions")
         versions_layout = QVBoxLayout(versions_group)
 
-        self.versions_label = QLabel("Versions")
+        self.versions_label = QLabel("Published Versions")
         self.versions_label.setAlignment(Qt.AlignCenter)
         versions_layout.addWidget(self.versions_label)
 
         self.versions_list = QListWidget(self)
-        self.versions_list.addItems(["Versions"])
-        #self.versions_list.itemClicked.connect(self.on_entity_selected)
+        self.versions_list.addItems(["Published Versions"])
+        self.versions_list.itemClicked.connect(self.on_version_selected)
         versions_layout.addWidget(self.versions_list)
 
         second_right_column.addWidget(versions_group)
@@ -466,7 +491,7 @@ class TaskManager(QMainWindow):
         main_layout.addLayout(second_level)
         
         self.apply_stylesheet()
-        self.detect_installed_software()
+        #self.detect_installed_software()
 
     def view_profile(self):
         try:
@@ -481,6 +506,13 @@ class TaskManager(QMainWindow):
 
     def view_settings(self):
         QMessageBox.information(self, "Settings", "Opening settings...")
+    
+    def view_console(self):
+        if not hasattr(self, "log_console") or self.log_console is None:
+            self.log_console = LogConsole()
+            self.log_console.show()
+            self.log_console.raise_()
+            self.log_console.activateWindow()
 
     def add_task_to_list(self, task_type_name, due_date, status, entity_name, id, project_code, task_code, entity_type_name, project_id, task_type_for_entity, sequence):
         # Create a custom widget for the task
@@ -591,6 +623,27 @@ class TaskManager(QMainWindow):
             sequence = task["sequence"]
             self.add_task_to_list(task_name, due_date, status, selected_entity, id, project_code, task_code, entity_type_name, project_id, task_type_for_entity, sequence)
     
+    def on_task_selected(self):
+        selected_task = self.get_selected_task()
+        if selected_task:
+            context = self.save_task_context(selected_task)
+            path = os.path.join(self.root_directory, context["project_code"], "Publish", context["task_type_for_entity"], context["entity_name"], context["task_code"])
+            print("THIS IS THE PATH where we will look for published files")
+            print(path)
+            self.published_files = collect_published_files(path)
+    
+            self.versions_list.clear()
+            self.published_files_dict = {}
+            
+            if self.published_files:
+
+                for file in self.published_files:
+                    self.versions_list.addItem(file)
+                    #self.versions_list.addItem(os.path.basename(file))
+            else:
+                self.versions_list.addItem("No published files found.")
+
+
     def get_selected_task(self):
         selected_item = self.tasks_list.currentItem()
         print(f"Selected item: {selected_item.text()}")
@@ -600,7 +653,8 @@ class TaskManager(QMainWindow):
         
         task_data = selected_item.data(Qt.UserRole)
         if task_data:
-            print(f"Task data: {task_data}")
+            print("Task data: ")
+            pprint.pprint(task_data)
             return task_data
         
         QMessageBox.warning(self, " Task Not Found", "The selected task could not be found.")
@@ -637,30 +691,54 @@ class TaskManager(QMainWindow):
             menu = QMenu(self)
 
             action_publish = menu.addAction("Publish")
-            action_publish.setIcon(QIcon(os.path.join(current_dir, "icons", "KitsuPublisherIcon.ico")))
+            pub_icon_path = resource_path("icons/KitsuPublisherIcon.ico")
+            action_publish.setIcon(QIcon(pub_icon_path))
+            #action_publish.setIcon(QIcon(os.path.join(current_dir, "icons", "KitsuPublisherIcon.ico")))
 
             action_view_details = menu.addAction("View Details")
 
-            action_launch_software = menu.addMenu("Launch Software")
-            action_launch_software.setIcon(QIcon(os.path.join(current_dir, "icons", "PhotoIcon.ico")))
+            #action_launch_software = menu.addMenu("Launch Software")
+            #launch_icon_path = resource_path("icons/PhotoIcon.ico")
+            #action_launch_software.setIcon(QIcon(launch_icon_path))
+            #action_launch_software.setIcon(QIcon(os.path.join(current_dir, "icons", "PhotoIcon.ico")))
             
-            action_launch_resolve = None
-            action_launch_krita = None
-            action_launch_nuke = None
-
-            if self.software_availability.get("Resolve"):
-                action_launch_resolve = action_launch_software.addAction("Launch Resolve")
-                action_launch_resolve.setIcon(QIcon(os.path.join(current_dir, "icons", "DaVinci_Resolve_Icon.ico")))
-            
-            if self.software_availability.get("Krita"):
-                action_launch_krita = action_launch_software.addAction("Launch Krita")
-                action_launch_krita.setIcon(QIcon(os.path.join(current_dir, "icons", "kritaicon.ico")))
-            
-            if self.software_availability.get("Nuke"):
-                action_launch_nuke = action_launch_software.addAction("Launch Nuke")
-                action_launch_nuke.setIcon(QIcon(os.path.join(current_dir, "icons", "NukeIcon.ico")))
-                action_launch_nuke.setEnabled(True)
-            action_launch_software.addSeparator()
+            #action_launch_resolve = None
+            #action_launch_krita = None
+            #action_launch_nuke = None
+            #action_launch_storyboarder = None
+            #action_launch_blender = None
+#
+            #if self.software_availability.get("Storyboarder"):
+            #    action_launch_storyboarder = action_launch_software.addAction("Launch Storyboarder")
+            #    lnch_strb_icon_path = resource_path("icons/StoryborderLogo.ico")
+            #    action_launch_storyboarder.setIcon(QIcon(lnch_strb_icon_path))
+            #    #action_launch_storyboarder.setIcon(QIcon(os.path.join(current_dir, "icons", "StoryborderLogo.ico")))
+#
+            #if self.software_availability.get("Krita"):
+            #    action_launch_krita = action_launch_software.addAction("Launch Krita")
+            #    lnch_krita_icon_path = resource_path("icons/kritaicon.ico")
+            #    action_launch_storyboarder.setIcon(QIcon(lnch_krita_icon_path))
+            #    #action_launch_krita.setIcon(QIcon(os.path.join(current_dir, "icons", "kritaicon.ico")))
+#
+            #if self.software_availability.get("Resolve"):
+            #    action_launch_resolve = action_launch_software.addAction("Launch Resolve")
+            #    lnch_Dvinci_icon_path = resource_path("icons/DaVinci_Resolve_Icon.ico")
+            #    action_launch_storyboarder.setIcon(QIcon(lnch_Dvinci_icon_path))
+            #    #action_launch_resolve.setIcon(QIcon(os.path.join(current_dir, "icons", "DaVinci_Resolve_Icon.ico")))
+            #
+            #if self.software_availability.get("Blender"):
+            #    action_launch_blender = action_launch_software.addAction("Launch Blender")
+            #    lnch_blender_icon_path = resource_path("icons/Blender_Logo.ico")
+            #    action_launch_storyboarder.setIcon(QIcon(lnch_blender_icon_path))
+            #    #action_launch_blender.setIcon(QIcon(os.path.join(current_dir, "icons", "Blender_Logo.ico")))
+#
+            #if self.software_availability.get("Nuke"):
+            #    action_launch_nuke = action_launch_software.addAction("Launch Nuke")
+            #    lnch_nuke_icon_path = resource_path("icons/NukeIcon.ico")
+            #    action_launch_storyboarder.setIcon(QIcon(lnch_nuke_icon_path))
+            #    #action_launch_nuke.setIcon(QIcon(os.path.join(current_dir, "icons", "NukeIcon.ico")))
+            #    action_launch_nuke.setEnabled(True)
+            #action_launch_software.addSeparator()
 
             #action_launch_resolve.setEnabled(self.software_availability.get("Resolve") is not None)
             #action_launch_krita.setEnabled(self.software_availability.get("Krita") is not None)
@@ -672,16 +750,23 @@ class TaskManager(QMainWindow):
                 return
 
             if action == action_view_details:
-                self.view_task_details()
+                pass
+                #self.view_task_details()
 
             elif action == action_publish:
                 from kitsu_home_pipeline.UI.publisher.new_gui import AgnosticPublisher
-                from kitsu_home_pipeline.utils.file_utils import create_context_file
+                from kitsu_home_pipeline.utils.file_utils import create_context_file, create_entity_directory
                 print("Creating context file for selected task")
                 selected_task = self.get_selected_task()
                 if selected_task:
                     context = self.save_task_context(selected_task)
                     create_context_file(context)
+                    publish_path, working_path = create_entity_directory(self.root_directory, 
+                                             context["project_code"], 
+                                             context["task_type_for_entity"], 
+                                             context["task_code"],
+                                             context["entity_name"]
+                                            )
 
                 print("Launching Publisher")
                 self.publisher_window = AgnosticPublisher()
@@ -701,6 +786,13 @@ class TaskManager(QMainWindow):
                 if selected_task:
                     self.save_task_context(selected_task)
                     krita_integration.launch(self.software_availability["Krita"], selected_task)
+            
+            elif action == action_launch_storyboarder:
+                from kitsu_home_pipeline.task_manager.software_utils import launch_storyboarder
+                selected_task = self.get_selected_task()
+                if selected_task:
+                    self.save_task_context(selected_task)
+                    launch_storyboarder(self.software_availability["Storyboarder"], selected_task)
                     
             elif action == action_launch_nuke:
                 from kitsu_home_pipeline.task_manager.software_utils import launch_nuke
@@ -708,103 +800,217 @@ class TaskManager(QMainWindow):
                 if selected_task:
                     self.save_task_context(selected_task)
                     launch_nuke(self.software_availability["Nuke"], selected_task)
-    
+            elif action == action_launch_blender:
+                from kitsu_home_pipeline.task_manager.software_utils import launch_blender
+                selected_task = self.get_selected_task()
+                if selected_task:
+                    self.save_task_context(selected_task)
+                    launch_blender(self.software_availability["Blender"], selected_task)
+
+        elif self.versions_list.underMouse():
+            menu = QMenu(self)
+            action_open_directory = menu.addAction("File location")
+            action_create_working = menu.addAction("Create working file from publish")
+
+            action = menu.exec(self.mapToGlobal(event.pos()))
+            if action:
+                print(self.versions_list.currentItem())
+            
+            
+            selected_version = self.versions_list.currentItem()
+            file_path = self.published_files.get(selected_version.text())
+            #print(f"THIS IS THE FILE PATH VALUE: {file_path}")
+
+            if action == action_open_directory:
+                from kitsu_home_pipeline.utils.file_utils import open_file_location
+                print("Opening file location...")
+                #selected_version = self.versions_list.currentItem()
+                #file_path = self.published_files.get(selected_version.text())
+                if file_path:
+                    open_file_location(file_path)
+
+            elif action == action_create_working:
+                from kitsu_home_pipeline.utils.file_utils import create_working_from_publish, open_file_location
+                print("Creating working file from publish...")
+
+                
+                #basename = os.path.basename(file_path).split(".")[0]
+                #directory = os.path.dirname(file_path)
+                #extension = os.path.splitext(file_path)[1].lstrip(".")
+                #print(f"This is the file basename: {basename}")
+                #print(f"This is the file directory: {directory}")
+                #print(f"This is the file extension: {extension}")
+
+                
+                working_file_path = create_working_from_publish(file_path)
+                wrkn_file_msg = QMessageBox()
+                custom_icon_path = resource_path("icons/Published.ico")
+                custom_icon = QPixmap(custom_icon_path)
+                wrkn_file_msg.setIconPixmap(custom_icon.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                wrkn_file_msg.setWindowTitle("Working file created")
+                wrkn_file_msg.setText(f"You did it!, Working file has been created at: {working_file_path} from the publish file")
+                wrkn_file_msg.setStandardButtons(QMessageBox.Ok)
+                wrkn_file_msg.exec()
+
+                open_file_location(working_file_path)
+
+
+    def on_version_selected(self, item):
+        print(f"Selected version: {item.text()}")
+        file_name = item.text()
+        file_path = self.published_files.get(file_name)
+        if file_path:
+            print(f"Full file path: {file_path}")
+        else:
+            print("File not found in path")
+
+        for file in self.published_files:
+            if item.text() == file:
+                print(f"Full file path: {file}")
+
     def view_task_details(self):
+        #TODO: Fix this so it gets the details of the entity and project and opens the webbrowser in that entity
         selected_items = self.tasks_list.currentItem()
+        try:
+            kitsu_url = self.selections.get("kitsu_url", "").rstrip("/api")
+            project_id = selected_items.data(Qt.UserRole).get("project_id")
+            #shot_id = 
+            my_tasks_url = f"{kitsu_url}/my-tasks"
+
+            print(project_id)
+            #print(my_tasks_url)
+            #webbrowser.open(my_tasks_url)
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Failed to open profile: {str(e)}")
+            return
         if selected_items:
             selected_task = selected_items[0].text()
             QMessageBox.information(self, "Task Details", f"Details for task: {selected_task}")
     
-    def setup_dcc_integrations(self):
-        """Setup DCC software integrations."""
-        try:
-            # Use already detected software instead of detecting again
-            logger.info(f"Using detected software: {self.software_availability}")
+    def closeEvent(self, event):
+        if hasattr(self, "publisher_window") and self.publisher_window is not None:
+            self.publisher_window.close()
+        event.accept()
 
-            # Setup Resolve integration if available
-            if self.software_availability.get("Resolve"):
-                logger.info("Setting up Resolve integration")
-                from kitsu_home_pipeline.integrations.resolve.setup_utils import setup_resolve_integration, ResolveSetup
-                
-                # Get the source scripts directory
-                source_scripts_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "integrations", "resolve", "scripts")
-                logger.info(f"Source scripts directory: {source_scripts_dir}")
-                
-                # Setup integration (this will also set up environment variables)
-                setup = ResolveSetup()
-                success = setup.setup_integration(source_scripts_dir)
-                
-                if success:
-                    # Verify the environment
-                    verification = setup.verify_environment()
-                    
-                    if verification["success"]:
-                        logger.info("Resolve integration has been set up successfully!")
-                        logger.info("Environment variables have been configured.")
-                        QMessageBox.information(self, "Setup Complete", 
-                            "Resolve integration has been set up successfully!\n"
-                            "The Kitsu publisher script has been installed in the Resolve Fusion Scripts directory.")
-                    else:
-                        # Create setup instructions
-                        setup._create_setup_instructions()
-                        
-                        # Show verification results only if there are issues
-                        missing_vars = "\n".join(f"- {var}" for var in verification["missing_vars"])
-                        msg = QMessageBox()
-                        msg.setIcon(QMessageBox.Warning)
-                        msg.setWindowTitle("Setup Verification")
-                        msg.setText("Some environment variables could not be set automatically.")
-                        msg.setInformativeText(f"Missing or invalid variables:\n{missing_vars}\n\n"
-                                             f"Please check the setup instructions at:\n{verification['instructions_file']}")
-                        msg.setStandardButtons(QMessageBox.Ok)
-                        msg.exec_()
-                else:
-                    QMessageBox.critical(self, "Setup Error", 
-                        "Failed to set up Resolve integration.\n"
-                        "Please check the logs for more details.")
-
-        except Exception as e:
-            logger.error(f"Error setting up DCC integrations: {str(e)}")
-            QMessageBox.critical(self, "Setup Error", 
-                f"Error setting up DCC integrations: {str(e)}\n\n"
-                "Please check the logs for more details.")
-
-def setup_dcc_integration(software_name):
-    """
-    Set up integration for a specific DCC software.
     
-    Args:
-        software_name (str): Name of the DCC software (e.g., 'resolve', 'krita')
-    """
-    try:
-        if software_name.lower() == 'resolve':
-            from kitsu_home_pipeline.integrations.resolve.setup_utils import setup_resolve_integration
-            source_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'integrations', 'resolve')
-            if setup_resolve_integration(source_dir):
-                logger.info("Successfully set up Resolve integration")
-            else:
-                logger.error("Failed to set up Resolve integration")
-        # Add other DCC software integrations here
-        # elif software_name.lower() == 'krita':
-        #     ...
-    except Exception as e:
-        logger.error(f"Error setting up {software_name} integration: {e}")
+    #def setup_dcc_integrations(self):
+    #    """Setup DCC software integrations."""
+    #    try:
+    #        # Use already detected software instead of detecting again
+    #        logger.info(f"Using detected software: {self.software_availability}")
+#
+    #        # Setup Resolve integration if available
+    #        if self.software_availability.get("Resolve"):
+    #            logger.info("Setting up Resolve integration")
+    #            from kitsu_home_pipeline.integrations.resolve.setup_utils import setup_resolve_integration, ResolveSetup
+    #            
+    #            # Get the source scripts directory
+    #            source_scripts_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "integrations", "resolve", "scripts")
+    #            logger.info(f"Source scripts directory: {source_scripts_dir}")
+    #            
+    #            # Setup integration (this will also set up environment variables)
+    #            setup = ResolveSetup()
+    #            success = setup.setup_integration(source_scripts_dir)
+    #            
+    #            if success:
+    #                # Verify the environment
+    #                verification = setup.verify_environment()
+    #                
+    #                if verification["success"]:
+    #                    logger.info("Resolve integration has been set up successfully!")
+    #                    logger.info("Environment variables have been configured.")
+    #                    QMessageBox.information(self, "Setup Complete", 
+    #                        "Resolve integration has been set up successfully!\n"
+    #                        "The Kitsu publisher script has been installed in the Resolve Fusion Scripts directory.")
+    #                else:
+    #                    # Create setup instructions
+    #                    setup._create_setup_instructions()
+    #                    
+    #                    # Show verification results only if there are issues
+    #                    missing_vars = "\n".join(f"- {var}" for var in verification["missing_vars"])
+    #                    msg = QMessageBox()
+    #                    msg.setIcon(QMessageBox.Warning)
+    #                    msg.setWindowTitle("Setup Verification")
+    #                    msg.setText("Some environment variables could not be set automatically.")
+    #                    msg.setInformativeText(f"Missing or invalid variables:\n{missing_vars}\n\n"
+    #                                         f"Please check the setup instructions at:\n{verification['instructions_file']}")
+    #                    msg.setStandardButtons(QMessageBox.Ok)
+    #                    msg.exec_()
+    #            else:
+    #                QMessageBox.critical(self, "Setup Error", 
+    #                    "Failed to set up Resolve integration.\n"
+    #                    "Please check the logs for more details.")
+#
+    #    except Exception as e:
+    #        logger.error(f"Error setting up DCC integrations: {str(e)}")
+    #        QMessageBox.critical(self, "Setup Error", 
+    #            f"Error setting up DCC integrations: {str(e)}\n\n"
+    #            "Please check the logs for more details.")
+            
+    #def network_drive_detected(self, drive_letter):
+    #    drive_path = f"{drive_letter.upper()}:\\"
+    #    print(f"Checking for drive: {drive_path}")
+    #    if os.path.exists(drive_path):
+    #        print(f"Network drive {drive_letter} detected")
+    #        return drive_path
+    #    else:
+    #        print(f"Network drive {drive_letter} not detected.")
+    #        return None
 
-def on_login_success():
+    def initial_directory_setup(self, drive_letter, root_folder):
+        from kitsu_home_pipeline.utils.file_utils import network_drive_detected
+        project_codes_dict = get_project_code()
+        pprint.pprint(project_codes_dict)
+        project_codes = list(project_codes_dict.values())
+        network_drive = network_drive_detected(drive_letter)
+        if network_drive and all(project_codes):
+            create_main_directory(network_drive, root_folder, project_codes)
+            self.root_directory = os.path.join(network_drive, root_folder)
+        else:
+            self.root_directory = None
+            QMessageBox.warning(self, "Directory Setup Failed", "Network drive or project codes not found. Please check your configuration.")
+
+
+#def setup_dcc_integration(software_name):
+#    """
+#    Set up integration for a specific DCC software.
+#    
+#    Args:
+#        software_name (str): Name of the DCC software (e.g., 'resolve', 'krita')
+#    """
+#    try:
+#        if software_name.lower() == 'resolve':
+#            from kitsu_home_pipeline.integrations.resolve.setup_utils import setup_resolve_integration
+#            source_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'integrations', 'resolve')
+#            if setup_resolve_integration(source_dir):
+#                logger.info("Successfully set up Resolve integration")
+#            else:
+#                logger.error("Failed to set up Resolve integration")
+#        # Add other DCC software integrations here
+#        # elif software_name.lower() == 'krita':
+#        #     ...
+#    except Exception as e:
+#        logger.error(f"Error setting up {software_name} integration: {e}")
+
+def on_login_success(self):
     """
     Handle post-login tasks, including DCC software integration setup.
     """
+    print("Login succesful!")
     # Detect installed DCC software
-    installed_software = detect_installed_software()  # You'll need to implement this
+    #installed_software = self.detect_installed_software()  # You'll need to implement this
     
     # Set up integration for each detected software
-    for software in installed_software:
-        print(f"Setting up integration for {software}...")
-        setup_dcc_integration(software)
+    #for software in installed_software:
+    #    print(f"Setting up integration for {software}...")
+    #    setup_dcc_integration(software)
 
 def run_gui():
+    print("Welcome to the most amazing task manager ever!")
+    print("............")
+    app_icon_path = resource_path("icons/KitsuIcon.ico")
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(os.path.join(current_dir, "icons", "KitsuIcon.ico")))
+    app.setWindowIcon(QIcon(app_icon_path))
     app.setFont(QFont("Segoe UI", 10))
     window = TaskManager()
     window.show()

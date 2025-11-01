@@ -12,9 +12,13 @@ def set_env_variables(kitsu_url, kitsu_email, kitsu_password):
     print(f"KITSU_PASSWORD: {kitsu_password}")
 
 def save_credentials(kitsu_url, kitsu_email, kitsu_password):
+    prefix = "http://"
+    sufix = "/api"
+    simple_url = kitsu_url
+    url = prefix + simple_url + sufix
     keyring.set_password("kitsu", "password", kitsu_password)
     keyring.set_password("kitsu", "email", kitsu_email)
-    keyring.set_password("kitsu", "url", kitsu_url)
+    keyring.set_password("kitsu", "url", url)
     print("Credentials saved to securely")
 
 
@@ -48,6 +52,7 @@ def connect_to_kitsu(kitsu_url, kitsu_email, kitsu_password):
         print("Kitsu Login successful!")
     else:
         raise Exception("Kitsu Login failed!")
+    
     
 def kitsu_auto_login():
     url = keyring.get_password("kitsu", "url")
