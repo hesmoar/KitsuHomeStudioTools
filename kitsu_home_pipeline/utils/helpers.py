@@ -2,6 +2,8 @@ import sys
 import os
 
 
+
+
 def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
@@ -32,3 +34,13 @@ def compare_version_values(working_file_version_input, kitsu_preview_version_inp
         new_kitsu_preview_version = working_file_version
         print(f"These are the new values, working file: {new_working_file_version}, and kitsu revision: {new_kitsu_preview_version}")
     return new_working_file_version, new_kitsu_preview_version
+
+def get_drive_root_paths():
+    from kitsu_home_pipeline.utils.config import load_config
+    config_data = load_config()
+    #print(config_data)
+    drive_letter = str(config_data.get("StudioFolder", "")[:2])
+    root_folder = str(config_data.get("StudioFolder", "")[3:])
+
+    print(f"This is the drive letter: {drive_letter}, and this is the root folder: {root_folder}")
+    return drive_letter, root_folder

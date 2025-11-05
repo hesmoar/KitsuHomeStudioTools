@@ -327,8 +327,11 @@ class TaskManager(QMainWindow):
         project_names, project_dict = get_user_projects()
 
     def update_ui_with_kitsu(self):
+        from kitsu_home_pipeline.utils.helpers import get_drive_root_paths
 
-        self.initial_directory_setup(drive_letter='x', root_folder='KitsuProjects')
+        drive_letter, root_folder = get_drive_root_paths()
+
+        self.initial_directory_setup(drive_letter, root_folder)
 
         # Main Window
         self.setGeometry(100, 100, 1200, 600)

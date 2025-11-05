@@ -8,6 +8,8 @@ from .kitsu_utils import get_user_tasks_for_project, get_task_short_name
 from .kitsu_utils import get_preview_thumbnail, clean_up_thumbnails
 from .kitsu_utils import get_user_avatar
 from .context_from_json import get_context_from_json
+from .config import load_config, save_config
+from .helpers import resource_path, compare_version_values
 
 __all__ = [
     'connect_to_kitsu',
@@ -20,5 +22,9 @@ __all__ = [
     'get_preview_thumbnail',
     'clean_up_thumbnails',
     'get_user_avatar',	
-    'get_context_from_json'
+    'get_context_from_json',
+    'load_config',
+    'save_config',
+    'resource_path',
+    'compare_version_values',
 ] 

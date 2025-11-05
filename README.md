@@ -1,8 +1,7 @@
 # WORK IN PROGRESS
-# Kitsu Home Pipeline Tools
+# Home Pipeline Tools
 
-Kitsu Home Pipeline Tools is a small, home-grown pipeline toolkit that integrates with Kitsu for project tracking
-and provides a GUI (Task Manager + Publisher) to browse tasks, create project folders and publish files. Helping you keep everything in order and your database updated 
+Home Pipeline Tools is a small, home-grown pipeline toolkit that integrates with Kitsu for project tracking and provides a GUI (Task Manager + Publisher) to browse tasks, create project folders and publish files. Helping you keep everything in order and your database updated and your project going. 
 
 This README gives a practical overview of how the project is structured and how to run the tools locally.
 
@@ -17,7 +16,7 @@ This README gives a practical overview of how the project is structured and how 
 
 ## Installation (Recommended Method)
 
-This is the easiest way to get started. You will download a self-contained application that runs without installing Python.
+This is the easiest way to get started. You will download a self-contained application that runs without installing or any other dependencies.
 
 1.  Go to the [**Releases Page**](https://github.com/hesmoar/KitsuHomeStudioTools/releases) on this repository.
 2.  Download the latest `.zip` file (e.g., `KitsuHomeStudioTools-v1.0.0-windows.zip`).
