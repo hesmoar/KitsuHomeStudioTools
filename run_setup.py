@@ -41,10 +41,10 @@ def prompt_for_studio_folder() -> str | None:
                 print("Please check the path and try again.")
                 continue
 
-            if not studio_path.is_dir():
-                print(f"Error: This is a file, not a directory.")
-                print("Please provide the path to a folder.")
-                continue
+            #if not studio_path.is_dir():
+            #    print(f"Error: This is a file, not a directory.")
+            #    print("Please provide the path to a folder.")
+            #    continue
 
             # 4. Success!
             # Convert to absolute path and string for consistent saving

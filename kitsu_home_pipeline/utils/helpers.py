@@ -37,10 +37,16 @@ def compare_version_values(working_file_version_input, kitsu_preview_version_inp
 
 def get_drive_root_paths():
     from kitsu_home_pipeline.utils.config import load_config
+    #from config import load_config
     config_data = load_config()
-    #print(config_data)
-    drive_letter = str(config_data.get("StudioFolder", "")[:2])
-    root_folder = str(config_data.get("StudioFolder", "")[3:])
+    studio_folder_path = config_data.get("StudioFolder")
+
+    if studio_folder_path: 
+        drive_letter, root_folder = os.path.splitdrive(studio_folder_path)
+        drive_letter = drive_letter.split(":")[0]
+        root_folder = root_folder.strip(os.sep).split(os.sep)[0]
 
     print(f"This is the drive letter: {drive_letter}, and this is the root folder: {root_folder}")
     return drive_letter, root_folder
+
+#get_drive_root_paths()
