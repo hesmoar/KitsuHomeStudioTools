@@ -7,6 +7,7 @@ import logging
 import pprint
 from datetime import datetime
 from kitsu_home_pipeline.utils.helpers import resource_path
+from PySide6 import QtWidgets, QtCore
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton,
     QCheckBox, QRadioButton, QButtonGroup, QFileDialog, QHBoxLayout, QGroupBox, 
@@ -14,7 +15,8 @@ from PySide6.QtWidgets import (
     QTabWidget, QTableWidget, QTableWidgetItem, QHeaderView, QFormLayout, QGridLayout, 
     QMessageBox, QListWidget, QListWidgetItem, QMenu, QToolButton, QSizeGrip
 )
-#from Qt5 import QtWidgets, QtCore, QtGui
+#from Qt6 import QtWidgets, QtCore, QtGui
+
 from PySide6.QtGui import QIcon, QPixmap, QFont, QColor, QPalette
 from PySide6.QtCore import Qt, QSize, QThread, Signal
 from kitsu_home_pipeline.utils import (
@@ -327,8 +329,11 @@ class TaskManager(QMainWindow):
         project_names, project_dict = get_user_projects()
 
     def update_ui_with_kitsu(self):
+        from kitsu_home_pipeline.utils.helpers import get_drive_root_paths
 
-        self.initial_directory_setup(drive_letter='x', root_folder='KitsuProjects')
+        drive_letter, root_folder = get_drive_root_paths()
+
+        self.initial_directory_setup(drive_letter, root_folder)
 
         # Main Window
         self.setGeometry(100, 100, 1200, 600)
@@ -1009,7 +1014,7 @@ def run_gui():
     print("Welcome to the most amazing task manager ever!")
     print("............")
     app_icon_path = resource_path("icons/KitsuIcon.ico")
-    app = QApplication(sys.argv)
+    app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(sys.argv)
     app.setWindowIcon(QIcon(app_icon_path))
     app.setFont(QFont("Segoe UI", 10))
     window = TaskManager()
