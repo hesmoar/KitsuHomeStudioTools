@@ -4,10 +4,14 @@ import json
 import logging
 import pprint
 import fileseq
+import traceback
+import keyring
 from kitsu_home_pipeline.utils.helpers import resource_path
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton,
-    QCheckBox, QRadioButton, QButtonGroup, QFileDialog, QHBoxLayout, QGroupBox, QFrame, QSpacerItem, QSizePolicy, QComboBox, QTextEdit, QToolButton, QMenu, QLineEdit, QMessageBox
+    QCheckBox, QRadioButton, QButtonGroup, QFileDialog, QHBoxLayout, 
+    QGroupBox, QFrame, QSpacerItem, QSizePolicy, QComboBox, QTextEdit, 
+    QToolButton, QMenu, QLineEdit, QMessageBox
 )
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton,
@@ -30,9 +34,9 @@ from kitsu_home_pipeline.utils import (
     get_project_short_name,
     get_task_short_name
 )
-import keyring
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
+logger = logging.getLogger(__name__)
 
 
 class FileGalleryWidget(QWidget):
@@ -685,148 +689,181 @@ class AgnosticPublisher(QMainWindow):
     
     def start_process(self):
         """Start process and set selections"""
-        from kitsu_home_pipeline.utils.kitsu_utils import find_task_preview_files, updating_preview_data, create_preview_file, create_working_file, create_output_file, working_file_path#, output_file_path
-        from kitsu_home_pipeline.utils.file_utils import collect_published_files, get_max_version_file, move_working_to_publish, move_preview_to_publish, create_entity_directory, create_file_name, get_unique_filename
-        from kitsu_home_pipeline.utils.helpers import compare_version_values
-        import re
-        import gazu
-        # Get selected files
+        try:
+            from kitsu_home_pipeline.utils.kitsu_utils import find_task_preview_files, updating_preview_data, create_preview_file, create_working_file, create_output_file, working_file_path#, output_file_path
+            from kitsu_home_pipeline.utils.file_utils import collect_published_files, get_max_version_file, move_working_to_publish, move_preview_to_publish, create_entity_directory, create_file_name, get_unique_filename
+            from kitsu_home_pipeline.utils.helpers import compare_version_values, get_drive_root_paths
+            import re
+            import gazu
+            import pathlib
+        except ImportError as e:
+            logger.error(f"Failed to import a required module {e}\n{traceback.format_exc()}")
+            QMessageBox.critical(self, "Import Error", f"A required module is missing: {e}. Cannot proceed")
+            return
+
+
+
+        # First we gather all the different variables needed
+        # Get the files attached by the user 
         working_files = self.working_file_gallery.get_files()
         output_files = self.output_file_gallery.get_files()
+        comment = self.comment_widget.get_comment()
 
-        project_code = self.context.get("project_code")
-        task_code = self.context.get("task_code")
-        print(f"Project code in publisher gui: {project_code}")
+        if not working_files:
+            QMessageBox.warning(self, "Missing Input", "Please provide at least one **Working File**.")
+            return  # Stop the function
+        if not output_files:
+            QMessageBox.warning(self, "Missing Input", "Please provide at least one **Output File** (preview).")
+            return  # Stop the function
+        if not comment.strip():
+            QMessageBox.warning(self, "Missing Input", "Please provide a **Comment** for this publish.")
+            return # Stop the function
+
+        try:
+            # Get the info from the context json file
+            project_code = self.context.get("project_code")
+            task_code = self.context.get("task_code")
+
+            # Get info from the GUI selections context
+            self.selections = {
+                "project_name": self.project_name,
+                "task_name": self.task_name,
+                "entity_name": self.entity_name,
+                "task_type_for_entity": self.task_type_for_entity,
+                "comment": comment,
+                "output_files": output_files,
+                "working_files": working_files,
+                "action": "publish",
+                "task_id": self.task_id
+            }
+            print("These are the selections made in the publisher gui: ")
+            pprint.pprint(self.selections)
+
+            task = gazu.task.get_task(self.selections["task_id"])
+
+            task_context_from_name = task
+            person = gazu.person.get_person_by_email(keyring.get_password("kitsu", "email"))
+            description = self.selections["comment"]
+            file_path = self.selections.get("output_files")[0]
+            software = gazu.files.get_software_by_name("Resolve")
+            project = gazu.project.get_project_by_name(self.selections["project_name"])
+            entity = gazu.entity.get_entity_by_name(self.selections["entity_name"], project)
+
+            root_drive, root_folder = get_drive_root_paths()
+            root_path = f"{root_drive}:/{root_folder}"
+
+            # Now we can start the publishing process
+
+            #First we build the path for the working file based on the project filetree
+            working_file_path(task_context_from_name, software)
+
+            # Now we create the working file entry in kitsu
+            #create_working_file(
+            #    task_context_from_name,
+            #    software,
+            #    description,
+            #    person,
+            #    file_path
+            #)
+
+            # Now we build the path for the output file based on the project filetree
+            #output_file_path(entity)
+
+            # Now we create the output file entry in kitsu
+            #create_output_file()
+            print(f"Starting process with {len(output_files + working_files)} files...")
+
+            #root_path = "X:/KitsuProjects"
+
+            publish_path, working_path = create_entity_directory(root_path,
+                                                                 project_code,
+                                                                 self.task_type_for_entity,
+                                                                 task_code,
+                                                                 self.entity_name)
+            print(f"Publish path: {publish_path}")
+            print(f"Working path: {working_path}")
+
+            # Preparing working file to move to publish area. 
+            file_base_name = create_file_name(project_code, self.entity_name, task_code)
+            src_file = self.selections["working_files"][0]
+            _, extension = os.path.splitext(src_file)
+            extension = extension.lstrip(".")
+
+            # Generate and confirm unique filename in new location.
+            unique_full_path, unique_file_name = get_unique_filename(file_base_name, publish_path, extension)
+
+
+            # Preparing output file to move to publish area
+            src_preview_file = self.selections["output_files"][0]
+            _, preview_ext = os.path.splitext(src_preview_file)
+            preview_extension = preview_ext.lstrip(".")
+
+
+
+            unique_preview_path, unique_preview_file = get_unique_filename(file_base_name, publish_path, preview_extension)
+            print(f"Unique full path: {unique_preview_path} for the file with unique name: {unique_preview_file}")
+
+
+            # In this section we check the values of the local published files and find the max value version
+            print("Attempting to get the max version number in the local published files.")
+            published_files_path, published_file_name = os.path.split(unique_full_path)  
+            local_published_files_dict = collect_published_files(published_files_path)
+            local_max_file, local_max_version = get_max_version_file(local_published_files_dict)
+
+            #In this section we check the values of the kitsu previews revision field and find the highest value 
+            kitsu_preview_files = find_task_preview_files(task_context_from_name)
+            highest_preview_revision = max(kitsu_preview_files, key=lambda k: kitsu_preview_files[k]['revision'])
+            highest_revision_value = kitsu_preview_files[highest_preview_revision]['revision']
+
+            #In this section we compare both local published file, and kitsu revision value and come up with a new correct and matching value
+            working_version_number, kitsu_version_number = compare_version_values(local_max_version, highest_revision_value)
+
+            #In this section we replace the version number with the newly found correct and matching number
+            new_version_number = f"{working_version_number:03d}"
+            new_unique_full_path = re.sub(r"_v\d{3}", f"_v{new_version_number}", unique_full_path)
+
+            # Move files into publish area
+            move_working_to_publish(self.selections["working_files"][0], new_unique_full_path)
+            preview_new_path = move_preview_to_publish(self.selections["output_files"][0], new_unique_full_path)
+
+            #Lets upload to Kitsu now
+            preview_file_created = create_preview_file(
+                task_context_from_name,
+                person,
+                description,
+                preview_new_path
+            )
+            preview_new_data = {
+                "revision": 13
+            }
+
+            # Updating the revision number to match 
+            #TODO: We need to find the latest preview file and get the revision value, compare with the preview and working file and make sure all three are matching
+            #updating_preview_data(preview_file_created, preview_new_data)
+
+
+            self.close()
+
+            publish_msg = QMessageBox()
+            custom_icon_path = resource_path("icons/Published.ico")
+            custom_icon = QPixmap(custom_icon_path)
+            publish_msg.setIconPixmap(custom_icon)#.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            publish_msg.setWindowTitle("Publish Complete")
+            publish_msg.setText(f"You did it!, Preview is in kitsu and working file moved to {publish_path}")
+            publish_msg.setStandardButtons(QMessageBox.Ok)
+            publish_msg.exec()
+            #QMessageBox.information(self, "Publish complete", f"Files have been published to kitsu and moved to {publish_path}")
         
-        # Set selections based on current state
-        self.selections = {
-            "project_name": self.project_name,
-            "task_name": self.task_name,
-            "entity_name": self.entity_name,
-            "task_type_for_entity": self.task_type_for_entity,
-            "comment": self.comment_widget.get_comment(),
-            "output_files": output_files,
-            "working_files": working_files,
-            "action": "publish",
-            "task_id": self.task_id
-        }
+        except Exception as e:
+            error_message = f"An error ocurred during the publishing process: {e}"
+            detailed_error = traceback.format_exc()
 
-        pprint.pprint(self.selections)
+            logger.error(f"{error_message}\n{detailed_error}")
+            print(f"ERROR: {error_message}\n{detailed_error}")
 
-        #selected_project = gazu.project.get_project_by_name(self.selections["project_name"])
-        #sequence = gazu.shot.get_sequence_by_name(selected_project, "0010")
-        #single_shot = gazu.shot.get_shot_by_name(sequence, self.entity_name)
-
-        task = gazu.task.get_task(self.selections["task_id"])
-        #task = gazu.task.get_task("86bc6195-1a4f-4767-9846-b911ecb2d30b")
-        #print("ThIS IS A TASK: ")
-        #pprint.pprint(task)
-
-        task_context_from_name = task
-        #print("What I extracted from the task for the new working file function: ")
-        #pprint.pprint(task_context_from_name)
-
-
-        person = gazu.person.get_person_by_email(keyring.get_password("kitsu", "email"))
-        description = self.selections["comment"]
-        file_path = self.selections.get("output_files")[0]
-        software = gazu.files.get_software_by_name("Resolve")
-        project = gazu.project.get_project_by_name(self.selections["project_name"])
-
-        entity = gazu.entity.get_entity_by_name(self.selections["entity_name"], project)
-
-        working_file_path(task_context_from_name, software)
-        #create_working_file(
-        #    task_context_from_name,
-        #    software,
-        #    description,
-        #    person,
-        #    file_path
-        #)
-        #output_file_path(entity)
-        #create_output_file()
-        print(f"Starting process with {len(output_files + working_files)} files...")
-
-        root_path = "X:/KitsuProjects"
-
-        publish_path, working_path = create_entity_directory(root_path,
-                                                             project_code,
-                                                             self.task_type_for_entity,
-                                                             task_code,
-                                                             self.entity_name)
-        print(f"Publish path: {publish_path}")
-        print(f"Working path: {working_path}")
-
-        # Preparing working file to move to publish area. 
-        file_base_name = create_file_name(project_code, self.entity_name, task_code)
-        src_file = self.selections["working_files"][0]
-        _, extension = os.path.splitext(src_file)
-        extension = extension.lstrip(".")
-
-        # Generate and confirm unique filename in new location.
-        unique_full_path, unique_file_name = get_unique_filename(file_base_name, publish_path, extension)
-
-
-        # Preparing output file to move to publish area
-        src_preview_file = self.selections["output_files"][0]
-        _, preview_ext = os.path.splitext(src_preview_file)
-        preview_extension = preview_ext.lstrip(".")
-
-
-
-        unique_preview_path, unique_preview_file = get_unique_filename(file_base_name, publish_path, preview_extension)
-        print(f"Unique full path: {unique_preview_path} for the file with unique name: {unique_preview_file}")
-
-
-        # In this section we check the values of the local published files and find the max value version
-        print("Attempting to get the max version number in the local published files.")
-        published_files_path, published_file_name = os.path.split(unique_full_path)  
-        local_published_files_dict = collect_published_files(published_files_path)
-        local_max_file, local_max_version = get_max_version_file(local_published_files_dict)
-
-        #In this section we check the values of the kitsu previews revision field and find the highest value 
-        kitsu_preview_files = find_task_preview_files(task_context_from_name)
-        highest_preview_revision = max(kitsu_preview_files, key=lambda k: kitsu_preview_files[k]['revision'])
-        highest_revision_value = kitsu_preview_files[highest_preview_revision]['revision']
-
-        #In this section we compare both local published file, and kitsu revision value and come up with a new correct and matching value
-        working_version_number, kitsu_version_number = compare_version_values(local_max_version, highest_revision_value)
-
-        #In this section we replace the version number with the newly found correct and matching number
-        new_version_number = f"{working_version_number:03d}"
-        new_unique_full_path = re.sub(r"_v\d{3}", f"_v{new_version_number}", unique_full_path)
-
-        # Move files into publish area
-        move_working_to_publish(self.selections["working_files"][0], new_unique_full_path)
-        preview_new_path = move_preview_to_publish(self.selections["output_files"][0], new_unique_full_path)
-
-        #Lets upload to Kitsu now
-        preview_file_created = create_preview_file(
-            task_context_from_name,
-            person,
-            description,
-            preview_new_path
-        )
-        preview_new_data = {
-            "revision": 13
-        }
-        
-        # Updating the revision number to match 
-        #TODO: We need to find the latest preview file and get the revision value, compare with the preview and working file and make sure all three are matching
-        #updating_preview_data(preview_file_created, preview_new_data)
-
-
-        self.close()
-
-        publish_msg = QMessageBox()
-        custom_icon_path = resource_path("icons/Published.ico")
-        custom_icon = QPixmap(custom_icon_path)
-        publish_msg.setIconPixmap(custom_icon)#.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        publish_msg.setWindowTitle("Publish Complete")
-        publish_msg.setText(f"You did it!, Preview is in kitsu and working file moved to {publish_path}")
-        publish_msg.setStandardButtons(QMessageBox.Ok)
-        publish_msg.exec()
-        #QMessageBox.information(self, "Publish complete", f"Files have been published to kitsu and moved to {publish_path}")
+            QMessageBox.critical(self,
+                                 "Publish Failed",
+                                 f"{error_message}\n\nPlease check the console or logs for detailed information")
 
     def cancel_and_exit(self):
         """Cancel and exit the application"""
