@@ -777,40 +777,40 @@ class TaskManager(QMainWindow):
                 self.publisher_window = AgnosticPublisher()
                 self.publisher_window.show()
 
-            elif action == action_launch_resolve:
-                from kitsu_home_pipeline.task_manager.software_utils import launch_resolve
-                selected_task = self.get_selected_task()
-                if selected_task:
-                    self.save_task_context(selected_task)
-                    launch_resolve(self.software_availability["Resolve"], selected_task)
-
-            elif action == action_launch_krita:
-                from kitsu_home_pipeline.integrations.krita import KritaIntegration
-                krita_integration = KritaIntegration()
-                selected_task = self.get_selected_task()
-                if selected_task:
-                    self.save_task_context(selected_task)
-                    krita_integration.launch(self.software_availability["Krita"], selected_task)
-            
-            elif action == action_launch_storyboarder:
-                from kitsu_home_pipeline.task_manager.software_utils import launch_storyboarder
-                selected_task = self.get_selected_task()
-                if selected_task:
-                    self.save_task_context(selected_task)
-                    launch_storyboarder(self.software_availability["Storyboarder"], selected_task)
-                    
-            elif action == action_launch_nuke:
-                from kitsu_home_pipeline.task_manager.software_utils import launch_nuke
-                selected_task = self.get_selected_task()
-                if selected_task:
-                    self.save_task_context(selected_task)
-                    launch_nuke(self.software_availability["Nuke"], selected_task)
-            elif action == action_launch_blender:
-                from kitsu_home_pipeline.task_manager.software_utils import launch_blender
-                selected_task = self.get_selected_task()
-                if selected_task:
-                    self.save_task_context(selected_task)
-                    launch_blender(self.software_availability["Blender"], selected_task)
+#            elif action == action_launch_resolve:
+#                from kitsu_home_pipeline.task_manager.software_utils import launch_resolve
+#                selected_task = self.get_selected_task()
+#                if selected_task:
+#                    self.save_task_context(selected_task)
+#                    launch_resolve(self.software_availability["Resolve"], selected_task)
+#
+#            elif action == action_launch_krita:
+#                from kitsu_home_pipeline.integrations.krita import KritaIntegration
+#                krita_integration = KritaIntegration()
+#                selected_task = self.get_selected_task()
+#                if selected_task:
+#                    self.save_task_context(selected_task)
+#                    krita_integration.launch(self.software_availability["Krita"], selected_task)
+#            
+#            elif action == action_launch_storyboarder:
+#                from kitsu_home_pipeline.task_manager.software_utils import launch_storyboarder
+#                selected_task = self.get_selected_task()
+#                if selected_task:
+#                    self.save_task_context(selected_task)
+#                    launch_storyboarder(self.software_availability["Storyboarder"], selected_task)
+#                    
+#            elif action == action_launch_nuke:
+#                from kitsu_home_pipeline.task_manager.software_utils import launch_nuke
+#                selected_task = self.get_selected_task()
+#                if selected_task:
+#                    self.save_task_context(selected_task)
+#                    launch_nuke(self.software_availability["Nuke"], selected_task)
+#            elif action == action_launch_blender:
+#                from kitsu_home_pipeline.task_manager.software_utils import launch_blender
+#                selected_task = self.get_selected_task()
+#                if selected_task:
+#                    self.save_task_context(selected_task)
+#                    launch_blender(self.software_availability["Blender"], selected_task)
 
         elif self.versions_list.underMouse():
             menu = QMenu(self)
