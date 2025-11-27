@@ -12,6 +12,7 @@ from kitsu_home_pipeline.UI.task_manager.gui import run_gui
 from kitsu_home_pipeline.UI.setup.gui import run_gui_configuration_setup
 import run_setup
 
+
 def main():
     app_config = config.load_config()
 
