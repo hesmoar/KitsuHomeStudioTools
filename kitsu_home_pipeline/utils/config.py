@@ -6,6 +6,7 @@ import os
 APP_NAME = "KitsuHomeStudioTools"
 APP_AUTHOR = "HomeStudioPipe"
 
+
 DEFAULT_CONFIG = {
     "StudioFolder" : ""
 }
